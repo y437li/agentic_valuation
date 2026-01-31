@@ -41,7 +41,7 @@ type ProjectionAssumptions struct {
 	DepreciationPercent float64 // % of Gross PPE
 
 	// Valuation Drivers (Carried through for DCF)
-	// WACC           float64 // Deprecated in favor of dynamic components
+
 	TerminalGrowth float64 // %
 
 	// Dynamic WACC Components

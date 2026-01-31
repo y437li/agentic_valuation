@@ -1,13 +1,14 @@
-package projection
+package projection_test
 
 import (
+	"agentic_valuation/pkg/core/projection"
 	"testing"
 )
 
 func TestGrowthStrategy(t *testing.T) {
-	s := &GrowthStrategy{GrowthRate: 0.05} // 5% growth
+	s := &projection.GrowthStrategy{GrowthRate: 0.05} // 5% growth
 
-	ctx := Context{
+	ctx := projection.Context{
 		Year:          2025,
 		LastYearValue: 100.0,
 	}
@@ -24,9 +25,9 @@ func TestGrowthStrategy(t *testing.T) {
 }
 
 func TestPriceVolumeStrategy(t *testing.T) {
-	s := &PriceVolumeStrategy{}
+	s := &projection.PriceVolumeStrategy{}
 
-	ctx := Context{
+	ctx := projection.Context{
 		Year: 2025,
 		Drivers: map[string]float64{
 			"price":  50.0,
@@ -46,9 +47,9 @@ func TestPriceVolumeStrategy(t *testing.T) {
 }
 
 func TestPriceVolumeStrategy_MissingDriver(t *testing.T) {
-	s := &PriceVolumeStrategy{}
+	s := &projection.PriceVolumeStrategy{}
 
-	ctx := Context{
+	ctx := projection.Context{
 		Year: 2025,
 		Drivers: map[string]float64{
 			"price": 50.0,
@@ -63,9 +64,9 @@ func TestPriceVolumeStrategy_MissingDriver(t *testing.T) {
 }
 
 func TestUnitCostStrategy(t *testing.T) {
-	s := &UnitCostStrategy{}
+	s := &projection.UnitCostStrategy{}
 
-	ctx := Context{
+	ctx := projection.Context{
 		Year: 2025,
 		Drivers: map[string]float64{
 			"volume":    1000.0,
@@ -85,12 +86,12 @@ func TestUnitCostStrategy(t *testing.T) {
 }
 
 func TestMarginStrategy(t *testing.T) {
-	s := &MarginStrategy{
+	s := &projection.MarginStrategy{
 		MarginPercent: 0.40, // 40% margin
 		BaseNodeID:    "revenue",
 	}
 
-	ctx := Context{
+	ctx := projection.Context{
 		Year: 2025,
 		Drivers: map[string]float64{
 			"revenue": 100000.0,
@@ -109,7 +110,7 @@ func TestMarginStrategy(t *testing.T) {
 }
 
 func TestNewStandardSkeleton(t *testing.T) {
-	skeleton := NewStandardSkeleton()
+	skeleton := projection.NewStandardSkeleton()
 
 	// Verify all nodes exist
 	if skeleton.Revenue == nil {
@@ -123,7 +124,7 @@ func TestNewStandardSkeleton(t *testing.T) {
 	}
 
 	// Verify node type
-	if skeleton.Revenue.Type != NodeTypeSkeleton {
+	if skeleton.Revenue.Type != projection.NodeTypeSkeleton {
 		t.Errorf("expected SKELETON type, got %s", skeleton.Revenue.Type)
 	}
 
@@ -134,12 +135,12 @@ func TestNewStandardSkeleton(t *testing.T) {
 }
 
 func TestNodeAttachDriver(t *testing.T) {
-	skeleton := NewStandardSkeleton()
+	skeleton := projection.NewStandardSkeleton()
 
-	driver := &Node{
+	driver := &projection.Node{
 		ID:   "test_driver",
 		Name: "Test Driver",
-		Type: NodeTypeDriver,
+		Type: projection.NodeTypeDriver,
 	}
 
 	err := skeleton.Revenue.AttachDriver(driver)
@@ -162,12 +163,12 @@ func TestNodeAttachDriver(t *testing.T) {
 }
 
 func TestNodeAttachDriver_DuplicatePrevented(t *testing.T) {
-	skeleton := NewStandardSkeleton()
+	skeleton := projection.NewStandardSkeleton()
 
-	driver := &Node{
+	driver := &projection.Node{
 		ID:   "test_driver",
 		Name: "Test Driver",
-		Type: NodeTypeDriver,
+		Type: projection.NodeTypeDriver,
 	}
 
 	_ = skeleton.Revenue.AttachDriver(driver)
@@ -179,21 +180,21 @@ func TestNodeAttachDriver_DuplicatePrevented(t *testing.T) {
 }
 
 func TestIsSkeletonID(t *testing.T) {
-	if !IsSkeletonID("revenue") {
+	if !projection.IsSkeletonID("revenue") {
 		t.Error("'revenue' should be a skeleton ID")
 	}
-	if !IsSkeletonID("cogs") {
+	if !projection.IsSkeletonID("cogs") {
 		t.Error("'cogs' should be a skeleton ID")
 	}
-	if IsSkeletonID("auto_price") {
+	if projection.IsSkeletonID("auto_price") {
 		t.Error("'auto_price' should NOT be a skeleton ID")
 	}
 }
 
 func TestStrategySelector_RevenueWithVolume(t *testing.T) {
-	selector := NewStrategySelector()
+	selector := projection.NewStrategySelector()
 
-	discovery := DriverDiscovery{
+	discovery := projection.DriverDiscovery{
 		NodeID:        "revenue",
 		AvailableData: []string{"revenue", "volume"},
 		Confidence:    0.9,
@@ -211,9 +212,9 @@ func TestStrategySelector_RevenueWithVolume(t *testing.T) {
 }
 
 func TestStrategySelector_RevenueWithoutVolume(t *testing.T) {
-	selector := NewStrategySelector()
+	selector := projection.NewStrategySelector()
 
-	discovery := DriverDiscovery{
+	discovery := projection.DriverDiscovery{
 		NodeID:        "revenue",
 		AvailableData: []string{"revenue"},
 		Confidence:    0.9,
@@ -231,10 +232,10 @@ func TestStrategySelector_RevenueWithoutVolume(t *testing.T) {
 }
 
 func TestStrategySelector_ApplyDecision(t *testing.T) {
-	selector := NewStrategySelector()
-	skeleton := NewStandardSkeleton()
+	selector := projection.NewStrategySelector()
+	skeleton := projection.NewStandardSkeleton()
 
-	discovery := DriverDiscovery{
+	discovery := projection.DriverDiscovery{
 		NodeID:        "revenue",
 		AvailableData: []string{"revenue", "deliveries"},
 		Confidence:    0.95,

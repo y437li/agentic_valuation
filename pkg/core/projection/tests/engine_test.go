@@ -1,7 +1,8 @@
-package projection
+package projection_test
 
 import (
 	"agentic_valuation/pkg/core/edgar"
+	"agentic_valuation/pkg/core/projection"
 	"math"
 	"testing"
 )
@@ -12,6 +13,14 @@ func floatPtr(v float64) *float64 {
 
 func val(v float64) *edgar.FSAPValue {
 	return &edgar.FSAPValue{Value: floatPtr(v)}
+}
+
+// Local helper to replace internal getValue from projection package
+func getValue(v *edgar.FSAPValue) float64 {
+	if v != nil && v.Value != nil {
+		return *v.Value
+	}
+	return 0
 }
 
 // Helper for extracting float64 pointers from CalculatedTotal
@@ -65,7 +74,7 @@ func TestProjectYear_Balancing(t *testing.T) {
 	// Rev 10% growth = 1100
 	// Capex 50% of Rev = 550 (Huge Spend)
 	// Margins normal.
-	assumptions := ProjectionAssumptions{
+	assumptions := projection.ProjectionAssumptions{
 		RevenueGrowth:      0.10,
 		COGSPercent:        0.60,
 		SGAPercent:         0.20,
@@ -78,7 +87,7 @@ func TestProjectYear_Balancing(t *testing.T) {
 		UsefulLifeForecast: 10.0, // Dep = Gross / 10 = 1000 / 10 = 100
 	}
 
-	engine := NewProjectionEngine(nil)
+	engine := projection.NewProjectionEngine(nil)
 	proj := engine.ProjectYear(prevIS, prevBS, nil, assumptions, 2025)
 
 	// Check IS

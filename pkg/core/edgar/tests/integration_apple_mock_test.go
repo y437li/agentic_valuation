@@ -1,4 +1,6 @@
-package edgar
+//go:build integration
+
+package tests
 
 import (
 	"context"
@@ -6,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	edgar "agentic_valuation/pkg/core/edgar"
 	"agentic_valuation/pkg/core/llm"
 	"agentic_valuation/pkg/core/prompt"
 )
@@ -63,8 +66,8 @@ CONSOLIDATED BALANCE SHEETS
 
 	// 1. Init Agents
 	provider := &DeepSeekAIProvider{provider: &llm.DeepSeekProvider{}}
-	mapper := NewTableMapperAgent(provider)
-	extractor := NewGoExtractor()
+	mapper := edgar.NewTableMapperAgent(provider)
+	extractor := edgar.NewGoExtractor()
 	ctx := context.Background()
 
 	// 2. Map Table

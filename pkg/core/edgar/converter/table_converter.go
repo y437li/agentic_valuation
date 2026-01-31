@@ -1,4 +1,4 @@
-package edgar
+package converter
 
 import (
 	"strconv"

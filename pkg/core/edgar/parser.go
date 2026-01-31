@@ -6,6 +6,7 @@
 package edgar
 
 import (
+	"agentic_valuation/pkg/core/edgar/converter"
 	"context"
 	"encoding/json"
 	"encoding/xml"
@@ -739,7 +740,7 @@ func (p *Parser) ExtractNotesText(html string) (text string) {
 // cleanHTML converts HTML to clean text for LLM using library-based approach
 // Uses goquery for HTML traversal and html-to-markdown for conversion
 func cleanHTML(html string) string {
-	return htmlToMarkdown(html)
+	return HTMLToMarkdown(html)
 }
 
 // htmlToMarkdown converts HTML to Markdown format using Pandoc.
@@ -756,9 +757,9 @@ func cleanHTML(html string) string {
 //   - Links and images
 //
 // REQUIREMENT: Pandoc must be installed on the system.
-func htmlToMarkdown(htmlContent string) string {
+func HTMLToMarkdown(htmlContent string) string {
 	// Step 1: Pre-process with HTMLSanitizer (fixes fake headers, extracts tables, removes noise)
-	sanitizer := NewHTMLSanitizer()
+	sanitizer := converter.NewHTMLSanitizer()
 	cleanedHTML, err := sanitizer.Sanitize(htmlContent)
 	if err != nil {
 		// Fallback to legacy cleaning
@@ -766,7 +767,7 @@ func htmlToMarkdown(htmlContent string) string {
 	}
 
 	// Step 2: Convert via Pandoc (text only - tables are placeholders)
-	pandoc := NewPandocAdapter()
+	pandoc := converter.NewPandocAdapter()
 	if !pandoc.IsAvailable() {
 		// Log warning but continue with cleaned HTML
 		fmt.Println("WARNING: Pandoc not available. HTML tables may not be properly aligned.")
@@ -928,7 +929,7 @@ func fallbackClean(html string) string {
 
 // convertTableToMarkdown converts an HTML table to Markdown using RobustTableConverter
 func convertTableToMarkdown(tableHTML string) string {
-	converter := &TableConverter{}
+	converter := &converter.TableConverter{}
 	return converter.ConvertTableToMarkdown(tableHTML)
 }
 
@@ -946,11 +947,11 @@ func (p *Parser) ExtractItem8Markdown(html string) string {
 	var err error
 
 	// Step 1: Sanitize HTML (Critical for iXBRL noise removal and table preservation)
-	sanitizer := NewHTMLSanitizer()
+	sanitizer := converter.NewHTMLSanitizer()
 	cleanHTML, err := sanitizer.Sanitize(html)
 	if err == nil {
 		// Step 2: Convert cleaned HTML to Markdown using Pandoc
-		adapter := &PandocAdapter{Timeout: 60 * time.Second}
+		adapter := &converter.PandocAdapter{Timeout: 60 * time.Second}
 		fullMarkdown, err = adapter.HTMLToMarkdown(cleanHTML)
 
 		// Step 3: Restore tables using the robust Virtual Grid converter
@@ -1015,11 +1016,11 @@ func (p *Parser) ExtractWithLLMAgent(ctx context.Context, html string, llmAnalyz
 	var err error
 
 	// Step 1: Sanitize HTML (Critical for iXBRL noise removal and table preservation)
-	sanitizer := NewHTMLSanitizer()
+	sanitizer := converter.NewHTMLSanitizer()
 	cleanHTML, err := sanitizer.Sanitize(html)
 	if err == nil {
 		// Step 2: Convert cleaned HTML to Markdown using Pandoc
-		adapter := &PandocAdapter{Timeout: 60 * time.Second}
+		adapter := &converter.PandocAdapter{Timeout: 60 * time.Second}
 		fullMarkdown, err = adapter.HTMLToMarkdown(cleanHTML)
 
 		// Step 3: Restore tables using the robust Virtual Grid converter
@@ -1433,7 +1434,7 @@ func (p *Parser) extractItem8MarkdownLegacy(html string) string {
 		}
 	}
 
-	return htmlToMarkdown(html[startPos:endPos])
+	return HTMLToMarkdown(html[startPos:endPos])
 }
 
 // Helper functions

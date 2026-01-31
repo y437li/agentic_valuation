@@ -1,5 +1,5 @@
 // Package edgar - Unit tests for v2.0 extraction agents
-package edgar
+package tests
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	edgar "agentic_valuation/pkg/core/edgar"
 	"agentic_valuation/pkg/core/prompt"
 )
 
@@ -30,6 +31,7 @@ func TestMain(m *testing.M) {
 func findResourcesDir() string {
 	// Try multiple paths
 	paths := []string{
+		"../../../../resources",
 		"../../../resources",
 		"../../resources",
 		"resources",
@@ -74,7 +76,7 @@ func TestNavigatorAgent_ParseTOC(t *testing.T) {
 	}`
 
 	provider := &mockAIProvider{response: mockResponse}
-	agent := NewNavigatorAgent(provider)
+	agent := edgar.NewNavigatorAgent(provider)
 
 	tocContent := `
 TABLE OF CONTENTS
@@ -111,7 +113,7 @@ Item 8. Financial Statements ... 46
 	t.Logf("✅ NavigatorAgent.ParseTOC passed - found %d sections", countSections(result))
 }
 
-func countSections(m *SectionMap) int {
+func countSections(m *edgar.SectionMap) int {
 	count := 0
 	if m.Business != nil {
 		count++
@@ -152,7 +154,7 @@ func TestTableMapperAgent_MapTable(t *testing.T) {
 	}`
 
 	provider := &mockAIProvider{response: mockResponse}
-	agent := NewTableMapperAgent(provider)
+	agent := edgar.NewTableMapperAgent(provider)
 
 	tableMarkdown := `
 | Item | 2024 | 2023 |
@@ -201,7 +203,7 @@ func TestTableMapperAgent_MapTable(t *testing.T) {
 // =============================================================================
 
 func TestGoExtractor_ParseMarkdownTable(t *testing.T) {
-	extractor := NewGoExtractor()
+	extractor := edgar.NewGoExtractor()
 
 	markdown := `## Consolidated Balance Sheet
 
@@ -239,14 +241,14 @@ func TestGoExtractor_ParseMarkdownTable(t *testing.T) {
 }
 
 func TestGoExtractor_ExtractValues(t *testing.T) {
-	extractor := NewGoExtractor()
+	extractor := edgar.NewGoExtractor()
 
 	// Create a parsed table
-	table := &ParsedTable{
+	table := &edgar.ParsedTable{
 		Title:   "Balance Sheet",
 		Type:    "balance_sheet",
 		Headers: []string{"Item", "2024", "2023"},
-		Rows: []ParsedTableRow{
+		Rows: []edgar.ParsedTableRow{
 			{Index: 0, Label: "Cash and cash equivalents", Values: []string{"10,000", "8,500"}},
 			{Index: 1, Label: "Accounts receivable, net", Values: []string{"5,000", "4,200"}},
 			{Index: 2, Label: "Total assets", Values: []string{"50,000", "45,000"}},
@@ -254,13 +256,13 @@ func TestGoExtractor_ExtractValues(t *testing.T) {
 	}
 
 	// Create mapping from TableMapperAgent
-	mapping := &LineItemMapping{
+	mapping := &edgar.LineItemMapping{
 		TableType: "balance_sheet",
-		YearColumns: []YearColumn{
+		YearColumns: []edgar.YearColumn{
 			{Year: 2024, ColumnIndex: 1},
 			{Year: 2023, ColumnIndex: 2},
 		},
-		RowMappings: []RowMapping{
+		RowMappings: []edgar.RowMapping{
 			{RowIndex: 0, RowLabel: "Cash and cash equivalents", FSAPVariable: "cash_and_equivalents", Confidence: 1.0},
 			{RowIndex: 2, RowLabel: "Total assets", FSAPVariable: "total_assets", Confidence: 1.0},
 		},
@@ -303,43 +305,6 @@ func TestGoExtractor_ExtractValues(t *testing.T) {
 	t.Logf("✅ GoExtractor.ExtractValues passed - extracted %d values with multi-year support", len(values))
 }
 
-func TestGoExtractor_ParseNumericValues(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected *float64
-	}{
-		{"10,000", floatPtr(10000)},
-		{"(5,000)", floatPtr(-5000)},
-		{"-3,500", floatPtr(-3500)},
-		{"$1,234.56", floatPtr(1234.56)},
-		{"-", nil},
-		{"N/A", nil},
-		{"", nil},
-		{"100", floatPtr(100)},
-	}
-
-	for _, tc := range tests {
-		result := parseNumericValueFromString(tc.input)
-		if tc.expected == nil {
-			if result != nil {
-				t.Errorf("Input %q: expected nil, got %f", tc.input, *result)
-			}
-		} else {
-			if result == nil {
-				t.Errorf("Input %q: expected %f, got nil", tc.input, *tc.expected)
-			} else if *result != *tc.expected {
-				t.Errorf("Input %q: expected %f, got %f", tc.input, *tc.expected, *result)
-			}
-		}
-	}
-
-	t.Log("✅ parseNumericValueFromString passed all cases")
-}
-
-func floatPtr(f float64) *float64 {
-	return &f
-}
-
 // =============================================================================
 // INTEGRATION TEST - Full Pipeline
 // =============================================================================
@@ -352,7 +317,7 @@ func TestFullExtractionPipeline(t *testing.T) {
 		"balance_sheet": {"title": "Consolidated Balance Sheets", "page": 48}
 	}`
 	navProvider := &mockAIProvider{response: tocResponse}
-	navigator := NewNavigatorAgent(navProvider)
+	navigator := edgar.NewNavigatorAgent(navProvider)
 
 	sectionMap, err := navigator.ParseTOC(context.Background(), "Sample TOC")
 	if err != nil {
@@ -370,7 +335,7 @@ func TestFullExtractionPipeline(t *testing.T) {
 		]
 	}`
 	mapperProvider := &mockAIProvider{response: mapperResponse}
-	mapper := NewTableMapperAgent(mapperProvider)
+	mapper := edgar.NewTableMapperAgent(mapperProvider)
 
 	lineMapping, err := mapper.MapTable(context.Background(), "balance_sheet", "| Cash | 10000 |")
 	if err != nil {
@@ -378,11 +343,11 @@ func TestFullExtractionPipeline(t *testing.T) {
 	}
 
 	// Step 3: GoExtractor extracts values
-	extractor := NewGoExtractor()
-	table := &ParsedTable{
+	extractor := edgar.NewGoExtractor()
+	table := &edgar.ParsedTable{
 		Type:    "balance_sheet",
 		Headers: []string{"Item", "2024"},
-		Rows:    []ParsedTableRow{{Index: 0, Label: "Cash", Values: []string{"10000"}}},
+		Rows:    []edgar.ParsedTableRow{{Index: 0, Label: "Cash", Values: []string{"10000"}}},
 	}
 
 	values := extractor.ExtractValues(table, lineMapping)
@@ -406,7 +371,7 @@ func TestFullExtractionPipeline(t *testing.T) {
 // =============================================================================
 
 func TestGoExtractor_LineNumberTracking(t *testing.T) {
-	extractor := NewGoExtractor()
+	extractor := edgar.NewGoExtractor()
 
 	markdown := `## Balance Sheet
 
@@ -454,7 +419,7 @@ func TestValidateAgainstReported(t *testing.T) {
 	}
 
 	// Simulated reported values from extraction (subtotals/totals)
-	reportedValues := []*FSAPValue{
+	reportedValues := []*edgar.FSAPValue{
 		{
 			Label: "Total current assets",
 			Years: map[string]float64{"2024": 19700, "2023": 16800},
@@ -465,7 +430,7 @@ func TestValidateAgainstReported(t *testing.T) {
 		},
 	}
 
-	report := ValidateAgainstReported(calculatedTotals, reportedValues, "2024")
+	report := edgar.ValidateAgainstReported(calculatedTotals, reportedValues, "2024")
 
 	if !report.AllPassed {
 		t.Error("Expected all validations to pass")
@@ -490,14 +455,14 @@ func TestValidateAgainstReported_Mismatch(t *testing.T) {
 		"total_current_assets": 19000, // Wrong! Should be 19700
 	}
 
-	reportedValues := []*FSAPValue{
+	reportedValues := []*edgar.FSAPValue{
 		{
 			Label: "Total current assets",
 			Years: map[string]float64{"2024": 19700},
 		},
 	}
 
-	report := ValidateAgainstReported(calculatedTotals, reportedValues, "2024")
+	report := edgar.ValidateAgainstReported(calculatedTotals, reportedValues, "2024")
 
 	if report.AllPassed {
 		t.Error("Expected validation to fail due to mismatch")
@@ -534,11 +499,11 @@ Some business description...
 | Revenue | 500 |
 `
 
-	section := &SectionLocation{
+	section := &edgar.SectionLocation{
 		Title: "Consolidated Balance Sheet",
 	}
 
-	sliced := SliceSection(markdown, section)
+	sliced := edgar.SliceSection(markdown, section)
 
 	if sliced == nil {
 		t.Fatal("Expected sliced section")

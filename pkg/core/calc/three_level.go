@@ -13,6 +13,9 @@ type ThreeLevelAnalysis struct {
 	Level1 Level1Growth `json:"level_1_growth"`
 	Level2 Level2Return `json:"level_2_return"` // DuPont & Margins
 	Level3 Level3Risk   `json:"level_3_risk"`   // Liquidity & Solvency
+
+	// ROCE Decomposition (Penman Style: Operating vs Financing)
+	ROCEAnalysis *ROCEDecomposition `json:"roce_analysis,omitempty"`
 }
 
 type Level1Growth struct {
@@ -35,12 +38,32 @@ type Level2Return struct {
 }
 
 type Level3Risk struct {
-	CurrentRatio     float64 `json:"current_ratio"`
-	QuickRatio       float64 `json:"quick_ratio"`
-	DebtToEquity     float64 `json:"debt_to_equity"`
-	InterestCoverage float64 `json:"interest_coverage"`
-	AltmanZScore     float64 `json:"altman_z_score"`  // Manufacturing Z
-	BeneishMScore    float64 `json:"beneish_m_score"` // Future Implementation
+	CurrentRatio     float64              `json:"current_ratio"`
+	QuickRatio       float64              `json:"quick_ratio"`
+	DebtToEquity     float64              `json:"debt_to_equity"`
+	InterestCoverage float64              `json:"interest_coverage"`
+	AltmanZScore     float64              `json:"altman_z_score"`
+	BeneishMScore    *BeneishMScoreResult `json:"beneish_m_score,omitempty"`
+}
+
+type ROCEDecomposition struct {
+	// Input Variables
+	NOPAT                       float64 `json:"nopat"`
+	NetFinancingExpenseAfterTax float64 `json:"net_financing_expense_after_tax"`
+	AverageNOA                  float64 `json:"average_noa"`             // Net Operating Assets
+	AverageFinObligations       float64 `json:"average_fin_obligations"` // Net Debt
+	AverageCommonEquity         float64 `json:"average_common_equity"`
+
+	// Derived Metrics
+	OperatingROA        float64 `json:"operating_roa"`          // NOPAT / Avg NOA
+	ProfitMarginForROCE float64 `json:"profit_margin_for_roce"` // NOPAT / Revenues
+	AssetTurnover       float64 `json:"asset_turnover"`         // Revenues / Avg NOA
+	NetBorrowingRate    float64 `json:"net_borrowing_rate"`     // Net Fin Exp / Avg Fin Obs
+	Spread              float64 `json:"spread"`                 // Op ROA - Net Borrowing Rate
+	Leverage            float64 `json:"leverage"`               // Avg Fin Obs / Avg Equity
+
+	// Final Result
+	ROCE float64 `json:"roce"` // Operating ROA + (Leverage * Spread)
 }
 
 // PerformThreeLevelAnalysis runs the full diagnostic for a specific year
@@ -53,7 +76,7 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 
 	// --- Level 1: Growth ---
 	if prior != nil {
-		analysis.Level1.RevenueGrowth = calcGrowth(getVal(current.IncomeStatement.Revenues), getVal(prior.IncomeStatement.Revenues))
+		analysis.Level1.RevenueGrowth = calcGrowth(getVal(current.IncomeStatement.GrossProfitSection.Revenues), getVal(prior.IncomeStatement.GrossProfitSection.Revenues))
 		analysis.Level1.OperatingIncomeGrowth = calcGrowth(getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome), getVal(prior.IncomeStatement.OperatingCostSection.OperatingIncome))
 		analysis.Level1.NetIncomeGrowth = calcGrowth(getVal(current.IncomeStatement.NetIncomeSection.NetIncomeToCommon), getVal(prior.IncomeStatement.NetIncomeSection.NetIncomeToCommon))
 		analysis.Level1.EPSGrowth = calcGrowth(getVal(current.SupplementalData.EPSDiluted), getVal(prior.SupplementalData.EPSDiluted))
@@ -65,14 +88,18 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	}
 
 	// --- Level 2: Returns (DuPont) ---
-	rev := getVal(current.IncomeStatement.Revenues)
+	rev := getVal(current.IncomeStatement.GrossProfitSection.Revenues)
 	netIncome := getVal(current.IncomeStatement.NetIncomeSection.NetIncomeToCommon)
-	avgAssets := getVal(current.BalanceSheet.ReportedForValidation.TotalAssets) // Should strictly be average
-	avgEquity := getVal(current.BalanceSheet.ReportedForValidation.TotalEquity) // Should strictly be average
+
+	totalAssets := getVal(current.BalanceSheet.ReportedForValidation.TotalAssets)
+	totalEquity := getVal(current.BalanceSheet.ReportedForValidation.TotalEquity)
+
+	avgAssets := totalAssets
+	avgEquity := totalEquity
 
 	if prior != nil {
-		avgAssets = (getVal(current.BalanceSheet.ReportedForValidation.TotalAssets) + getVal(prior.BalanceSheet.ReportedForValidation.TotalAssets)) / 2
-		avgEquity = (getVal(current.BalanceSheet.ReportedForValidation.TotalEquity) + getVal(prior.BalanceSheet.ReportedForValidation.TotalEquity)) / 2
+		avgAssets = (totalAssets + getVal(prior.BalanceSheet.ReportedForValidation.TotalAssets)) / 2
+		avgEquity = (totalEquity + getVal(prior.BalanceSheet.ReportedForValidation.TotalEquity)) / 2
 	}
 
 	analysis.Level2.GrossMargin = safeDiv(getVal(current.IncomeStatement.GrossProfitSection.GrossProfit), rev)
@@ -84,7 +111,24 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	analysis.Level2.ROE = analysis.Level2.ROA * analysis.Level2.FinancialLeverage // DuPont Identity
 
 	// Simple ROIC proxy: NOPAT / (Equity + Debt - Cash)
-	nopat := getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome) * (1 - 0.21) // Assume 21% Tax
+	ebit := getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome)
+	taxExp := getVal(current.IncomeStatement.TaxAdjustments.IncomeTaxExpense)
+	preTaxIncome := getVal(current.IncomeStatement.NonOperatingSection.IncomeBeforeTax)
+
+	effectiveTaxRate := 0.21 // Default
+	if preTaxIncome != 0 {
+		effectiveTaxRate = math.Abs(taxExp / preTaxIncome)
+	}
+	// Cap tax rate at reasonable bounds [0, 1] for modeling
+	if effectiveTaxRate < 0 {
+		effectiveTaxRate = 0
+	}
+	if effectiveTaxRate > 0.4 {
+		effectiveTaxRate = 0.4
+	} // Cap at 40% to avoid outliers
+
+	nopat := ebit * (1 - effectiveTaxRate)
+
 	debt := getVal(current.BalanceSheet.NoncurrentLiabilities.LongTermDebt) + getVal(current.BalanceSheet.CurrentLiabilities.NotesPayableShortTermDebt)
 	cash := getVal(current.BalanceSheet.CurrentAssets.CashAndEquivalents)
 	investedCapital := avgEquity + debt - cash
@@ -94,7 +138,6 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	ca := getVal(current.BalanceSheet.ReportedForValidation.TotalCurrentAssets)
 	cl := getVal(current.BalanceSheet.ReportedForValidation.TotalCurrentLiabilities)
 	inv := getVal(current.BalanceSheet.CurrentAssets.Inventories)
-	ebit := getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome)
 	interest := getVal(current.IncomeStatement.NonOperatingSection.InterestExpense)
 	re := getVal(current.BalanceSheet.Equity.RetainedEarningsDeficit)
 	ta := getVal(current.BalanceSheet.ReportedForValidation.TotalAssets)
@@ -117,6 +160,84 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	// WC = CA - CL
 	wc := ca - cl
 	analysis.Level3.AltmanZScore = AltmanZScore(wc, re, ebit, mve, rev, ta, tl)
+
+	// Beneish M-Score
+	analysis.Level3.BeneishMScore = CalculateBeneishMScore(current, prior)
+
+	// --- ROCE Decomposition (Penman) ---
+	// Need Prior data for averages. If no prior, use current.
+
+	// 1. Calculate NOA and Net Debt for Current and Prior
+	calcNetDebt := func(d *edgar.FSAPDataResponse) float64 {
+		totalDebt := getVal(d.BalanceSheet.NoncurrentLiabilities.LongTermDebt) + getVal(d.BalanceSheet.CurrentLiabilities.NotesPayableShortTermDebt)
+		c := getVal(d.BalanceSheet.CurrentAssets.CashAndEquivalents)
+		return totalDebt - c
+	}
+
+	calcEquity := func(d *edgar.FSAPDataResponse) float64 {
+		return getVal(d.BalanceSheet.ReportedForValidation.TotalEquity)
+	}
+
+	currNetDebt := calcNetDebt(current)
+	currEquity := calcEquity(current)
+	currNOA := currEquity + currNetDebt // Accounting Identity: NOA = Equity + Net Financial Obligations
+
+	var avgNOA, avgFinObs, avgCommEquity float64
+
+	if prior != nil {
+		prevNetDebt := calcNetDebt(prior)
+		prevEquity := calcEquity(prior)
+		prevNOA := prevEquity + prevNetDebt
+
+		avgNOA = (currNOA + prevNOA) / 2
+		avgFinObs = (currNetDebt + prevNetDebt) / 2
+		avgCommEquity = (currEquity + prevEquity) / 2
+	} else {
+		avgNOA = currNOA
+		avgFinObs = currNetDebt
+		avgCommEquity = currEquity
+	}
+
+	// 2. Metrics
+	// NOPAT calculated above
+
+	// Net Financing Expense After Tax
+	// Interest Expense is usually negative in our FSAP. Make it positive for "Expense" concept.
+	// Interest Income is positive.
+	// Net Financing costs ~ -InterestExpense - InterestIncome.
+	// If the line item is "NetInterestExpense" (checking schema):
+	// In types it's under NonOperatingSection.InterestExpense. Usually net.
+
+	netInterest := getVal(current.IncomeStatement.NonOperatingSection.InterestExpense)
+	// If negative (expense), abs it.
+	netFinancingExpPreTax := math.Abs(netInterest)
+	netFinancingExpAfterTax := netFinancingExpPreTax * (1 - effectiveTaxRate)
+
+	opROA := safeDiv(nopat, avgNOA)
+	// Specific DuPont-style decomposition of RNOA
+	pmROCE := safeDiv(nopat, rev)
+	turnover := safeDiv(rev, avgNOA)
+
+	netBorrowRate := safeDiv(netFinancingExpAfterTax, avgFinObs)
+	leverage := safeDiv(avgFinObs, avgCommEquity)
+	spread := opROA - netBorrowRate
+
+	roce := opROA + (leverage * spread)
+
+	analysis.ROCEAnalysis = &ROCEDecomposition{
+		NOPAT:                       nopat,
+		NetFinancingExpenseAfterTax: netFinancingExpAfterTax,
+		AverageNOA:                  avgNOA,
+		AverageFinObligations:       avgFinObs,
+		AverageCommonEquity:         avgCommEquity,
+		OperatingROA:                opROA,
+		ProfitMarginForROCE:         pmROCE,
+		AssetTurnover:               turnover,
+		NetBorrowingRate:            netBorrowRate,
+		Spread:                      spread,
+		Leverage:                    leverage,
+		ROCE:                        roce,
+	}
 
 	return analysis
 }

@@ -60,8 +60,6 @@ func CalculateDCF(input DCFInput) DCFResult {
 		if proj.IncomeStatement != nil {
 			if proj.IncomeStatement.NonOperatingSection != nil {
 				interest = getVal(proj.IncomeStatement.NonOperatingSection.InterestExpense)
-			} else {
-				interest = getVal(proj.IncomeStatement.InterestExpense)
 			}
 		}
 		interestAdj := interest * (1 - input.TaxRate)
@@ -71,8 +69,6 @@ func CalculateDCF(input DCFInput) DCFResult {
 		if proj.CashFlow != nil {
 			if proj.CashFlow.InvestingActivities != nil {
 				capex = getVal(proj.CashFlow.InvestingActivities.Capex)
-			} else {
-				capex = getVal(proj.CashFlow.Capex)
 			}
 		}
 

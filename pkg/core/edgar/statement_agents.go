@@ -441,6 +441,13 @@ loop:
 	response.Metadata.VariablesMapped = mapped
 	response.Metadata.VariablesUnmapped = unmapped
 
+	// ========== PASS 3: RECLASSIFICATION ENGINE (Note-to-Session) ==========
+	// This integrates Qualitative Insights to modify Quantitative Sessions
+	reclassEngine := NewReclassificationEngine()
+	if err := reclassEngine.ApplyReclassifications(response); err != nil {
+		fmt.Printf("[ParallelExtract] Reclassification Engine warning: %v\n", err)
+	}
+
 	return response, nil
 }
 
@@ -645,14 +652,18 @@ func generateStatementPrompt(st StatementType, units *DetectedUnits) string {
 }
 
 // getPromptIDForStatement maps StatementType to prompt library ID
+// getPromptIDForStatement maps StatementType to prompt library ID
 func getPromptIDForStatement(st StatementType) string {
 	switch st {
 	case BalanceSheetType:
-		return prompt.PromptIDs.ExtractionBalanceSheet
+		p, _ := prompt.GetExtractionPrompt("balance_sheet")
+		return p
 	case IncomeStatementType:
-		return prompt.PromptIDs.ExtractionIncomeStatement
+		p, _ := prompt.GetExtractionPrompt("income_statement")
+		return p
 	case CashFlowType:
-		return prompt.PromptIDs.ExtractionCashFlow
+		p, _ := prompt.GetExtractionPrompt("cash_flow")
+		return p
 	case SupplementalType:
 		return prompt.PromptIDs.ExtractionSupplemental
 	default:

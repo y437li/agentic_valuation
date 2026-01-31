@@ -246,11 +246,9 @@ func PopulateSourcePositions(resp *FSAPDataResponse, markdown string) {
 
 	// Process Income Statement (legacy flat fields)
 	is := &resp.IncomeStatement
-	populateValue(is.Revenues)
-	populateValue(is.CostOfGoodsSold)
-	populateValue(is.SGAExpenses)
-	populateValue(is.InterestExpense)
-	populateValue(is.IncomeTaxExpense)
+	// Legacy flat fields are no longer manually populated here.
+	// They are marked omitempty in the struct and should be phased out.
+	// The source of truth is the nested section data (GrossProfitSection, etc.)
 
 	// Process Income Statement sections
 	if is.GrossProfitSection != nil {

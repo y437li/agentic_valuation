@@ -1,7 +1,8 @@
-package projection
+package projection_test
 
 import (
 	"agentic_valuation/pkg/core/edgar"
+	"agentic_valuation/pkg/core/projection"
 	"math"
 	"testing"
 )
@@ -55,7 +56,7 @@ func TestProjectionEngine_V2_Compliance(t *testing.T) {
 	}
 
 	// 2. Setup Assumptions
-	assume := ProjectionAssumptions{
+	assume := projection.ProjectionAssumptions{
 		RevenueGrowth: 0.10, // +10% -> 2200
 
 		// Granular OpEx
@@ -75,8 +76,8 @@ func TestProjectionEngine_V2_Compliance(t *testing.T) {
 		DepreciationPercent: 0.04, // 40
 	}
 
-	skeleton := NewStandardSkeleton()
-	engine := NewProjectionEngine(skeleton)
+	skeleton := projection.NewStandardSkeleton()
+	engine := projection.NewProjectionEngine(skeleton)
 
 	// 3. Run Projection
 	proj := engine.ProjectYear(prevIS, prevBS, nil, assume, 2025)

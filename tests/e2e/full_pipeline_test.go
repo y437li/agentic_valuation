@@ -14,6 +14,7 @@ import (
 	"agentic_valuation/pkg/core/calc"
 	"agentic_valuation/pkg/core/debate"
 	"agentic_valuation/pkg/core/edgar"
+	"agentic_valuation/pkg/core/edgar/converter"
 	"agentic_valuation/pkg/core/llm"
 	"agentic_valuation/pkg/core/projection"
 	"agentic_valuation/pkg/core/synthesis"
@@ -592,7 +593,7 @@ func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) 
 	htmlContent := string(data)
 
 	// Use PandocAdapter to convert
-	converter := edgar.NewPandocAdapter()
+	converter := converter.NewPandocAdapter()
 	if !converter.IsAvailable() {
 		t.Skipf("Pandoc not found in PATH, skipping %s", company.Name)
 		return "", nil

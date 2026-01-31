@@ -1,10 +1,12 @@
-package edgar
+package tests
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	edgar "agentic_valuation/pkg/core/edgar"
 )
 
 // TestFetchVerification_AllCompanies validates that the Smart Filing Fetcher
@@ -51,7 +53,7 @@ func TestFetchVerification_AllCompanies(t *testing.T) {
 		{"Verizon", "732712"},
 	}
 
-	parser := NewParser()
+	parser := edgar.NewParser()
 
 	fmt.Println("🔎 Starting Fetch Verification for 20 Companies...")
 	fmt.Printf("%-20s %-10s %-10s %-20s\n", "Company", "CIK", "Status", "Details")

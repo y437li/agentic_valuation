@@ -426,11 +426,11 @@ func (eo *ExtractionOrchestrator) extractIncomeStatement(table *ParsedTable, tar
 
 		switch bestCandidate.FSAPVariable {
 		case "revenues":
-			resp.IncomeStatement.Revenues = fsapValue
+			resp.IncomeStatement.GrossProfitSection.Revenues = fsapValue
 		case "cost_of_goods_sold":
-			resp.IncomeStatement.CostOfGoodsSold = fsapValue
+			resp.IncomeStatement.GrossProfitSection.CostOfGoodsSold = fsapValue
 		case "net_income":
-			resp.IncomeStatement.ReportedForValidation.NetIncome = fsapValue
+			resp.IncomeStatement.NetIncomeSection.NetIncomeToCommon = fsapValue
 		}
 	}
 }
@@ -495,10 +495,10 @@ func countMappedValues(resp *edgar.FSAPDataResponse) int {
 	if resp.BalanceSheet.CurrentAssets.Inventories != nil {
 		count++
 	}
-	if resp.IncomeStatement.Revenues != nil {
+	if resp.IncomeStatement.GrossProfitSection.Revenues != nil {
 		count++
 	}
-	if resp.IncomeStatement.ReportedForValidation.NetIncome != nil {
+	if resp.IncomeStatement.NetIncomeSection.NetIncomeToCommon != nil {
 		count++
 	}
 	return count

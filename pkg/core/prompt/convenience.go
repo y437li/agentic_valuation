@@ -8,10 +8,23 @@ func GetDebatePrompt(role string) (string, error) {
 	return Get().GetSystemPrompt(id)
 }
 
-// GetExtractionPrompt returns an extraction prompt by statement type
+// GetExtractionPrompt returns the prompt ID for a specific financial statement extraction task
+// now mapping to V2 Table Mapper prompts to ensure legacy code using this function gets the new behavior
+// or errors out if explicit legacy behavior was expected.
 func GetExtractionPrompt(statementType string) (string, error) {
-	id := "extraction." + statementType
-	return Get().GetSystemPrompt(id)
+	// Map legacy short names to V2 prompts if possible, or error out
+	switch statementType {
+	case "balance_sheet":
+		return "extraction.v2_table_mapper_balance_sheet", nil
+	case "income_statement":
+		return "extraction.v2_table_mapper_income_statement", nil
+	case "cash_flow":
+		return "extraction.v2_table_mapper_cash_flow", nil
+	default:
+		// Fallback to generic ID construction for other types
+		id := "extraction." + statementType
+		return Get().GetSystemPrompt(id)
+	}
 }
 
 // GetQualitativePrompt returns a qualitative agent's system prompt
@@ -55,14 +68,17 @@ var PromptIDs = struct {
 	DebateSynthesizer string
 
 	// Extraction
-	ExtractionBalanceSheet    string
-	ExtractionIncomeStatement string
-	ExtractionCashFlow        string
-	ExtractionSupplemental    string
-	ExtractionTOC             string
-	ExtractionNotes           string
-	ExtractionBaseRules       string
-	NoteIndex                 string
+	// Deprecated: ExtractionBalanceSheet
+	// Deprecated: ExtractionIncomeStatement
+	// Deprecated: ExtractionCashFlow
+
+	// V2 Extraction Prompts (Navigator + Table Mapper)
+	ExtractionNavigatorTOC string
+	ExtractionSupplemental string
+	ExtractionTOC          string
+	ExtractionNotes        string
+	ExtractionBaseRules    string
+	NoteIndex              string
 
 	// Qualitative
 	QualitativeStrategy          string
@@ -80,14 +96,16 @@ var PromptIDs = struct {
 	DebateOptimist:    "debate.optimist",
 	DebateSynthesizer: "debate.synthesizer",
 
-	ExtractionBalanceSheet:    "extraction.balance_sheet",
-	ExtractionIncomeStatement: "extraction.income_statement",
-	ExtractionCashFlow:        "extraction.cash_flow",
-	ExtractionSupplemental:    "extraction.supplemental",
-	ExtractionTOC:             "extraction.toc_analysis",
-	ExtractionNotes:           "extraction.notes_analysis",
-	ExtractionBaseRules:       "extraction.base_rules",
-	NoteIndex:                 "extraction.note_index",
+	// ExtractionBalanceSheet: "extraction.balance_sheet",
+	// ExtractionIncomeStatement: "extraction.income_statement",
+	// ExtractionCashFlow: "extraction.cash_flow",
+
+	ExtractionNavigatorTOC: "extraction.v2_navigator_toc",
+	ExtractionSupplemental: "extraction.supplemental",
+	ExtractionTOC:          "extraction.toc_analysis",
+	ExtractionNotes:        "extraction.notes_analysis",
+	ExtractionBaseRules:    "extraction.base_rules",
+	NoteIndex:              "extraction.note_index",
 
 	QualitativeStrategy:          "qualitative.strategy",
 	QualitativeCapitalAllocation: "qualitative.capital_allocation",

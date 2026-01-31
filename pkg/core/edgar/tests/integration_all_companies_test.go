@@ -1,4 +1,6 @@
-package edgar
+//go:build integration
+
+package tests
 
 import (
 	"context"
@@ -8,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	edgar "agentic_valuation/pkg/core/edgar"
 	"agentic_valuation/pkg/core/llm"
 	"agentic_valuation/pkg/core/prompt"
 )
@@ -90,9 +93,9 @@ func runCompanyTest(t *testing.T, company CompanyTestCase) {
 
 	// Initialize agents
 	provider := &DeepSeekAIProvider{provider: &llm.DeepSeekProvider{}}
-	navigator := NewNavigatorAgent(provider)
-	mapper := NewTableMapperAgent(provider)
-	extractor := NewGoExtractor()
+	navigator := edgar.NewNavigatorAgent(provider)
+	mapper := edgar.NewTableMapperAgent(provider)
+	extractor := edgar.NewGoExtractor()
 	ctx := context.Background()
 
 	// NavigatorAgent
@@ -148,7 +151,7 @@ type statementConfig struct {
 	expected  []string
 }
 
-func testStatement(t *testing.T, ctx context.Context, markdown string, stmt statementConfig, mapper *TableMapperAgent, extractor *GoExtractor) {
+func testStatement(t *testing.T, ctx context.Context, markdown string, stmt statementConfig, mapper *edgar.TableMapperAgent, extractor *edgar.GoExtractor) {
 	startLine := findTableLine(markdown, stmt.patterns)
 	if startLine == 0 {
 		t.Skipf("⚠️ %s not found", stmt.name)
@@ -183,7 +186,7 @@ func testStatement(t *testing.T, ctx context.Context, markdown string, stmt stat
 	// Run aggregation validation
 	switch stmt.tableType {
 	case "balance_sheet":
-		result := ValidateBalanceSheet(values, "")
+		result := edgar.ValidateBalanceSheet(values, "")
 		t.Logf("📊 Balance Sheet: Assets=%.0f, L+E=%.0f, Diff=%.2f%%",
 			result.TotalAssets, result.TotalLiabEquity, result.DiffPercent)
 		if !result.IsValid {
@@ -193,7 +196,7 @@ func testStatement(t *testing.T, ctx context.Context, markdown string, stmt stat
 		}
 
 	case "income_statement":
-		result := ValidateIncomeStatement(values, "")
+		result := edgar.ValidateIncomeStatement(values, "")
 		t.Logf("📊 Income Statement: Revenue=%.0f, COGS=%.0f, GrossProfit=%.0f (calc=%.0f), NetIncome=%.0f",
 			result.Revenues, result.COGS, result.GrossProfit, result.GrossProfitCalc, result.NetIncome)
 		if !result.IsValid {
@@ -203,7 +206,7 @@ func testStatement(t *testing.T, ctx context.Context, markdown string, stmt stat
 		}
 
 	case "cash_flow":
-		result := ValidateCashFlow(values, "")
+		result := edgar.ValidateCashFlow(values, "")
 		t.Logf("📊 Cash Flow: Op=%.0f, Inv=%.0f, Fin=%.0f, NetChange=%.0f (calc=%.0f)",
 			result.OperatingCF, result.InvestingCF, result.FinancingCF, result.NetChangeCF, result.NetChangeCFCalc)
 		if !result.IsValid {
@@ -233,7 +236,7 @@ func getCompanyMarkdown(t *testing.T, company CompanyTestCase) string {
 		htmlContent = string(data)
 	} else {
 		t.Log("⬇️ Fetching from SEC...")
-		parser := NewParser()
+		parser := edgar.NewParser()
 		meta, err := parser.GetFilingMetadata(company.CIK, "10-K")
 		if err != nil {
 			t.Fatalf("Failed to get metadata: %v", err)
@@ -248,5 +251,5 @@ func getCompanyMarkdown(t *testing.T, company CompanyTestCase) string {
 		os.WriteFile(cacheFile, []byte(htmlContent), 0644)
 	}
 
-	return htmlToMarkdown(htmlContent)
+	return edgar.HTMLToMarkdown(htmlContent)
 }

@@ -1,4 +1,6 @@
-package edgar
+//go:build integration
+
+package tests
 
 import (
 	"context"
@@ -7,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	edgar "agentic_valuation/pkg/core/edgar"
 	"agentic_valuation/pkg/core/llm"
 	"agentic_valuation/pkg/core/prompt"
 )
@@ -38,9 +41,9 @@ func TestIntegration_RealData_Apple_AllStatements(t *testing.T) {
 
 	// Initialize agents
 	provider := &DeepSeekAIProvider{provider: &llm.DeepSeekProvider{}}
-	navigator := NewNavigatorAgent(provider)
-	mapper := NewTableMapperAgent(provider)
-	extractor := NewGoExtractor()
+	navigator := edgar.NewNavigatorAgent(provider)
+	mapper := edgar.NewTableMapperAgent(provider)
+	extractor := edgar.NewGoExtractor()
 	ctx := context.Background()
 
 	// Use NavigatorAgent to find all sections
@@ -201,8 +204,8 @@ func TestIntegration_RealData_Apple_EndToEnd(t *testing.T) {
 	} else {
 		// Download and cache
 		t.Log("⬇️ Cache miss. Smart-fetching filing from SEC...")
-		parser := NewParser()
-		meta := &FilingMetadata{
+		parser := edgar.NewParser()
+		meta := &edgar.FilingMetadata{
 			CIK:             cikPadded,
 			AccessionNumber: accessionNumber,
 			FilingDate:      "2024-10-31",
@@ -229,7 +232,7 @@ func TestIntegration_RealData_Apple_EndToEnd(t *testing.T) {
 
 	// 3. Convert to Markdown
 	t.Log("📝 Converting to Markdown...")
-	markdown := htmlToMarkdown(htmlContent)
+	markdown := edgar.HTMLToMarkdown(htmlContent)
 	t.Logf("Converted to Markdown: %d chars", len(markdown))
 
 	// Save markdown for other tests
@@ -239,9 +242,9 @@ func TestIntegration_RealData_Apple_EndToEnd(t *testing.T) {
 
 	// 4. Initialize Agents
 	provider := &DeepSeekAIProvider{provider: &llm.DeepSeekProvider{}}
-	navigator := NewNavigatorAgent(provider)
-	mapper := NewTableMapperAgent(provider)
-	extractor := NewGoExtractor()
+	navigator := edgar.NewNavigatorAgent(provider)
+	mapper := edgar.NewTableMapperAgent(provider)
+	extractor := edgar.NewGoExtractor()
 	ctx := context.Background()
 
 	// 5. Use NavigatorAgent to find Balance Sheet title

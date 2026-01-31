@@ -2,7 +2,7 @@
 // Run with: go test -v ./pkg/core/edgar/... -run "TestIntegration" -tags=integration
 //go:build integration
 
-package edgar
+package tests
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"agentic_valuation/pkg/core/edgar"
 	"agentic_valuation/pkg/core/llm"
 	"agentic_valuation/pkg/core/prompt"
 )
@@ -61,7 +62,7 @@ func TestIntegration_AdvancedStructure(t *testing.T) {
 	}
 
 	provider := &DeepSeekAIProvider{provider: &llm.DeepSeekProvider{}}
-	mapper := NewTableMapperAgent(provider)
+	mapper := edgar.NewTableMapperAgent(provider)
 	ctx := context.Background()
 
 	tests := []struct {

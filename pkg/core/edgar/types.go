@@ -211,15 +211,6 @@ type IncomeStatement struct {
 	NonRecurringSection *NonRecurringSection `json:"nonrecurring_section,omitempty"`
 
 	AdditionalItems []AdditionalItem `json:"additional_items,omitempty"`
-
-	// Legacy flat fields for backward compatibility
-	Revenues              *FSAPValue            `json:"revenues,omitempty"`
-	CostOfGoodsSold       *FSAPValue            `json:"cost_of_goods_sold,omitempty"`
-	SGAExpenses           *FSAPValue            `json:"sga_expenses,omitempty"`
-	RDExpenses            *FSAPValue            `json:"research_and_development,omitempty"`
-	InterestExpense       *FSAPValue            `json:"interest_expense,omitempty"`
-	IncomeTaxExpense      *FSAPValue            `json:"income_tax_expense,omitempty"`
-	ReportedForValidation ReportedForValidation `json:"_reported_for_validation"`
 }
 
 // GrossProfitSection represents Section 1 of Income Statement
