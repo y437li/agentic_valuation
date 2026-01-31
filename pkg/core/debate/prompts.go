@@ -47,6 +47,12 @@ impacting the target company. Focus on Interest Rates, GDP growth, Inflation, Co
 and Consumer Spending trends. You rely heavily on real-time data from web searches. 
 Provide data-driven insights with clear citations.
 
+TEMPORAL GROUNDING (CRITICAL):
+- The analysis is for FISCAL YEAR {{ .FiscalYear }}.
+- Use ONLY data and forecasts relevant to this fiscal period.
+- Do NOT rely on your training data cutoff; assume your knowledge is outdated.
+- ONLY cite data from the years {{ .FiscalYear - 1 }} to {{ .FiscalYear + 1 }}.
+
 CITATION REQUIREMENT:
 - Every data point MUST include the source URL in markdown format: [Source Name](https://url.com)
 - Example: "Fed funds rate at 5.25% [Federal Reserve](https://fred.stlouisfed.org/series/FEDFUNDS)"
@@ -61,6 +67,11 @@ OUTPUT FORMAT:
 regarding the target company. Look for analyst ratings (Buy/Sell/Hold), recent news headlines, 
 social media buzz, and management tone in earnings calls. 
 Are investors optimistic or fearful? What are the key narratives driving the stock?
+
+TEMPORAL GROUNDING (CRITICAL):
+- The analysis is for FISCAL YEAR {{ .FiscalYear }}.
+- Focus on sentiment data from {{ .FiscalYear - 1 }} to present.
+- Do NOT rely on your training data cutoff; use ONLY provided or searched data.
 
 CITATION REQUIREMENT:
 - Every claim MUST include the source URL: [Source Name](https://url.com)
@@ -83,6 +94,12 @@ Analyze the company's performance within its specific **Market Segments**.
 
 For this debate, you provide the "Business Reality" to ground the macro and sentiment discussions.
 
+TEMPORAL GROUNDING (CRITICAL):
+- The analysis is for FISCAL YEAR {{ .FiscalYear }}.
+- Base ALL metrics on the provided MaterialPool financial data.
+- Do NOT hallucinate financials; if data is missing, state "Data not provided".
+- Historical context should use years {{ .FiscalYear - 5 }} to {{ .FiscalYear }}.
+
 CITATION REQUIREMENT:
 - All financial data MUST cite the source with URL: [Source Name](https://url.com)
 - Example: "Q3 Revenue $89.5B [Apple 10-K](https://sec.gov/cgi-bin/...)"
@@ -97,6 +114,11 @@ Question every assumption. If someone says "growth will be 5%", you ask "what if
 Highlight risks, competition, regulatory threats, and valuation concerns. 
 You are not cynical, just rigorously prudent. Prevent confirmation bias.
 
+TEMPORAL GROUNDING (CRITICAL):
+- The analysis is for FISCAL YEAR {{ .FiscalYear }}.
+- Challenge assumptions using data relevant to {{ .FiscalYear }} and beyond.
+- Do NOT cite risks that are already resolved in past years.
+
 OUTPUT FORMAT:
 - Strict GitHub Flavored Markdown (GFM).
 - Start immediately with headers (# or ##).
@@ -106,6 +128,11 @@ OUTPUT FORMAT:
 Highlight innovation, market expansion, and strategic wins. 
 When the Skeptic points out risks, you provide mitigation factors or argue why the reward outweighs the risk. 
 You believe in the company's vision and execution capabilities.
+
+TEMPORAL GROUNDING (CRITICAL):
+- The analysis is for FISCAL YEAR {{ .FiscalYear }}.
+- Focus on catalysts and opportunities relevant to {{ .FiscalYear }} and forward guidance.
+- Do NOT cite old wins that are no longer relevant.
 
 OUTPUT FORMAT:
 - Strict GitHub Flavored Markdown (GFM).
@@ -141,27 +168,60 @@ Your task is to produce a BOARD-READY investment memorandum based SOLELY on the 
 ## 2. Atomized Financial Assumptions
 
 Each assumption below links to a Parent ID for integration with the financial model.
+Group assumptions by category. Use common-size (% of Revenue) for Income Statement items.
 
-| Parent ID | Assumption | Value | Unit | Proposed By | Confidence | Source URL |
-|-----------|------------|-------|------|-------------|------------|------------|
-| rev_growth | Revenue Growth | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| cogs_percent | COGS % of Rev | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| selling_marketing_percent | Selling & Mkt % | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| general_admin_percent | G&A % | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| rd_percent | R&D % | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| tax_rate | Tax Rate | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| capex_percent | CapEx % of Rev | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| beta | Unlevered Beta | X | - | [Fundamental] | High/Med/Low | [URL](https://...) |
-| risk_free_rate | Risk Free Rate | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| market_risk_premium | Equity Risk Prem | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| cost_of_debt | Cost of Debt | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| target_debt_equity | Target D/E Ratio | X | X | [Fundamental] | High/Med/Low | [URL](https://...) |
-| terminal_growth | Terminal Growth | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| stock_based_comp_percent | SBC % of Rev | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| dividend_payout_ratio | Div Payout Ratio | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| cash_interest_rate | Cash Interest % | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| debt_interest_rate | Debt Interest % | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
-| segment_growth_[name] | Growth [Seg Name] | X | % | [Fundamental] | High/Med/Low | [URL](https://...) |
+### Income Statement Drivers (% of Revenue)
+
+| Parent ID | Assumption | Value | Unit | Proposed By | Confidence | Rationale |
+|-----------|------------|-------|------|-------------|------------|-----------|
+| rev_growth | Revenue Growth | X | % | [Agent] | H/M/L | [Why] |
+| cogs_percent | COGS % | X | % | [Agent] | H/M/L | [Why] |
+| sga_percent | SG&A % | X | % | [Agent] | H/M/L | [Why] |
+| advertising_percent | Advertising % | X | % | [Agent] | H/M/L | [Why] |
+| rd_percent | R&D % | X | % | [Agent] | H/M/L | [Why] |
+| other_opex_percent | Other OpEx % | X | % | [Agent] | H/M/L | [Why] |
+| interest_income_rate | Interest Income Rate | X | % | [Agent] | H/M/L | [Why] |
+| interest_expense_rate | Interest Expense Rate | X | % | [Agent] | H/M/L | [Why] |
+| effective_tax_rate | Effective Tax Rate | X | % | [Agent] | H/M/L | [Why] |
+
+### Cash Flow Drivers (% of Revenue or specific rates)
+
+| Parent ID | Assumption | Value | Unit | Proposed By | Confidence | Rationale |
+|-----------|------------|-------|------|-------------|------------|-----------|
+| da_percent_ppe | D&A % of PPE Gross | X | % | [Agent] | H/M/L | [Why] |
+| sbc_percent | Stock Comp % of Rev | X | % | [Agent] | H/M/L | [Why] |
+| capex_percent | CapEx % of Rev | X | % | [Agent] | H/M/L | [Why] |
+| acquisition_percent | Acquisitions % of Rev | X | % | [Agent] | H/M/L | [Why] |
+| dividend_payout | Div Payout % of NI | X | % | [Agent] | H/M/L | [Why] |
+| share_repurchase_percent | Buyback % of Rev | X | % | [Agent] | H/M/L | [Why] |
+
+### Balance Sheet / Working Capital Drivers
+
+| Parent ID | Assumption | Value | Unit | Proposed By | Confidence | Rationale |
+|-----------|------------|-------|------|-------------|------------|-----------|
+| ar_days | AR Days (DSO) | X | days | [Agent] | H/M/L | [Why] |
+| inventory_days | Inventory Days (DIO) | X | days | [Agent] | H/M/L | [Why] |
+| ap_days | AP Days (DPO) | X | days | [Agent] | H/M/L | [Why] |
+| prepaid_percent | Prepaid % of Rev | X | % | [Agent] | H/M/L | [Why] |
+| accrued_liab_percent | Accrued Liab % of COGS | X | % | [Agent] | H/M/L | [Why] |
+
+### Valuation / WACC Inputs
+
+| Parent ID | Assumption | Value | Unit | Proposed By | Confidence | Rationale |
+|-----------|------------|-------|------|-------------|------------|-----------|
+| beta_unlevered | Unlevered Beta | X | - | [Agent] | H/M/L | [Why] |
+| risk_free_rate | Risk-Free Rate | X | % | [Agent] | H/M/L | [Why] |
+| equity_risk_premium | Equity Risk Premium | X | % | [Agent] | H/M/L | [Why] |
+| cost_of_debt | Pre-Tax Cost of Debt | X | % | [Agent] | H/M/L | [Why] |
+| target_debt_equity | Target D/E Ratio | X | x | [Agent] | H/M/L | [Why] |
+| terminal_growth | Perpetual Growth Rate | X | % | [Agent] | H/M/L | [Why] |
+
+### Segment-Level Assumptions (if applicable)
+
+| Parent ID | Assumption | Value | Unit | Proposed By | Confidence | Rationale |
+|-----------|------------|-------|------|-------------|------------|-----------|
+| segment_growth_[name] | [Segment] Growth | X | % | [Agent] | H/M/L | [Why] |
+| segment_margin_[name] | [Segment] Margin | X | % | [Agent] | H/M/L | [Why] |
 
 ---
 

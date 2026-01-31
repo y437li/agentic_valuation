@@ -77,7 +77,11 @@ type MaterialPool struct {
 	// 3. Market Context (from Research Phase)
 	MacroTrends       *MacroResearch     `json:"macro_trends"`
 	MarketSentiment   *SentimentResearch `json:"market_sentiment"`
-	TranscriptHistory []Transcript       `json:"transcript_history,omitempty"` // Recently added: Earnings Calls
+	TranscriptHistory []Transcript       `json:"transcript_history,omitempty"` // Earnings Calls
+
+	// 4. Deep-Dive Note Data (from Note Extraction)
+	ExtractedNotes []edgar.ExtractedNote `json:"extracted_notes,omitempty"` // Qualitative note content
+	NoteTableData  []edgar.NoteTableRow  `json:"note_tables,omitempty"`     // Normalized table rows for assumption gen
 }
 
 type Transcript struct {

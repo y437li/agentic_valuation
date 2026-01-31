@@ -241,11 +241,8 @@ func PopulateSourcePositions(resp *FSAPDataResponse, markdown string) {
 	populateValue(bs.Equity.RetainedEarningsDeficit)
 	populateValue(bs.Equity.TreasuryStock)
 
-	// Process Income Statement (legacy flat fields)
+	// Process Income Statement sections
 	is := &resp.IncomeStatement
-	// Legacy flat fields are no longer manually populated here.
-	// They are marked omitempty in the struct and should be phased out.
-	// The source of truth is the nested section data (GrossProfitSection, etc.)
 
 	// Process Income Statement sections
 	if is.GrossProfitSection != nil {

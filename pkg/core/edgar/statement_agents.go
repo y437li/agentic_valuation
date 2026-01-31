@@ -131,8 +131,8 @@ func truncateForLog(s string, maxLen int) string {
 	return s
 }
 
-// populateValuesFromYears ensures that the legacy Value field is populated from the Years map
-// This is critical because the calculation logic relies on Value, but the LLM now only returns Years
+// populateValuesFromYears populates the Value field from the Years map for calc package compatibility.
+// The v2.0 extractor fills Years map, but pkg/core/calc reads the Value field directly.
 func populateValuesFromYears(resp *FSAPDataResponse) {
 	if resp == nil {
 		return

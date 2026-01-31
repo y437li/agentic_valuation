@@ -119,6 +119,20 @@ func (b *MaterialPoolBuilder) WithTranscripts(transcripts []Transcript) *Materia
 	return b
 }
 
+// WithNoteData adds extracted notes and normalized table data for assumption generation
+func (b *MaterialPoolBuilder) WithNoteData(notes []edgar.ExtractedNote) *MaterialPoolBuilder {
+	b.pool.ExtractedNotes = notes
+	// Flatten all table rows from notes
+	var allRows []edgar.NoteTableRow
+	for _, note := range notes {
+		for _, table := range note.Tables {
+			allRows = append(allRows, table.Rows...)
+		}
+	}
+	b.pool.NoteTableData = allRows
+	return b
+}
+
 // Build returns the constructed MaterialPool
 func (b *MaterialPoolBuilder) Build() (*MaterialPool, error) {
 	if b.err != nil {

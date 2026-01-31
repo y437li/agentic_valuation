@@ -289,7 +289,7 @@ type CashFlowStatement struct {
 	SupplementalInfo    *CFSupplementalInfo `json:"supplemental_info,omitempty"`
 	CashSummary         *CashSummarySection `json:"cash_summary,omitempty"`
 
-	// Legacy flat fields
+	// Flat fields for calc package - populated via populateValuesFromYears()
 	NetIncomeStart             *FSAPValue            `json:"net_income_start,omitempty"`
 	DepreciationAmortization   *FSAPValue            `json:"depreciation_amortization,omitempty"`
 	DeferredTaxes              *FSAPValue            `json:"deferred_taxes,omitempty"`
