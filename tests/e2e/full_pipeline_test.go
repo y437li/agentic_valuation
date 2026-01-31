@@ -559,17 +559,19 @@ func float64Ptr(v float64) *float64 {
 
 // Helper to get markdown locally or fetch (Simplified version of integration_all_companies_test)
 func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) {
-	// 1. Try Cache in pkg/core/edgar/testdata/cache (Relative path adjustment needed)
-	// From tests/e2e, we go up to root, then down.
-	// Assuming running from project root: pkg/core/edgar/testdata/cache
+	// 1. Determine Cache Path (Relative to repo root)
+	// tests/e2e -> ../../pkg/core/edgar/testdata/cache
+	wd, _ := os.Getwd()
+	repoRoot := filepath.Dir(filepath.Dir(wd)) // Assuming running from tests/e2e
+	if strings.HasSuffix(wd, "agentic_valuation") {
+		repoRoot = wd // Running from root
+	}
+	baseDir := filepath.Join(repoRoot, "pkg", "core", "edgar", "testdata", "cache")
 
-	// 2. Decode HTML -> Markdown
-
-	// Assuming standard layout:
-	// c:\Users\y437l\OneDrive\Rotman\agentic_valuation\pkg\core\edgar\testdata\cache
-	// We can reconstruct it from the known structure.
-
-	baseDir := "c:\\Users\\y437l\\OneDrive\\Rotman\\agentic_valuation\\pkg\\core\\edgar\\testdata\\cache"
+	// Ensure directory exists
+	if err := os.MkdirAll(baseDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create cache dir: %v", err)
+	}
 
 	if company.CacheFile == "" {
 		// Use a simple safe name generator matching the other test
@@ -584,18 +586,32 @@ func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) 
 
 	cachePath := filepath.Join(baseDir, company.CacheFile)
 
-	// 2. Decode HTML -> Markdown
+	// 2. Try Cache or Fetch
+	var htmlContent string
 	data, err := os.ReadFile(cachePath)
-	if err != nil {
-		// If running from project root
-		wd, _ := os.Getwd()
-		return "", fmt.Errorf("cache file not found at %s (pwd: %s). Ensure you have run integration_all_companies_test.go first to populate cache.", cachePath, wd)
+	if err == nil {
+		t.Logf("📁 Loaded from cache: %s", company.CacheFile)
+		htmlContent = string(data)
+	} else {
+		t.Logf("⬇️ Cache miss. Fetching %s from SEC...", company.Name)
+		parser := edgar.NewParser()
+		meta, err := parser.GetFilingMetadata(company.CIK, "10-K")
+		if err != nil {
+			return "", fmt.Errorf("failed to get metadata: %v", err)
+		}
+		htmlContent, err = parser.FetchSmartFilingHTML(meta)
+		if err != nil {
+			return "", fmt.Errorf("fetch failed: %v", err)
+		}
+		// Save to cache
+		if err := os.WriteFile(cachePath, []byte(htmlContent), 0644); err != nil {
+			t.Logf("⚠️ Failed to write cache: %v", err)
+		} else {
+			t.Logf("💾 Saved to cache: %s", cachePath)
+		}
 	}
 
-	t.Logf("📁 Loaded from cache: %s", company.CacheFile)
-	htmlContent := string(data)
-
-	// Use PandocAdapter to convert
+	// 3. Convert to Markdown
 	converter := edgar.NewPandocAdapter()
 	if !converter.IsAvailable() {
 		return "", fmt.Errorf("pandoc not found in PATH")
