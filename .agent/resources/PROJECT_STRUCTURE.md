@@ -11,9 +11,26 @@ This document provides a comprehensive map of the TIED (Transparent, Integrated,
 | **`docs/`** | **Documentation**: Human-readable project documentation. |
 | **`pkg/`** | **Backend Core**: The main Go application logic (Business Logic Layer). |
 | **`resources/`** | **Prompt Library**: JSON-based LLM prompts and response schemas. |
+| **`schema/`** | **Database Schema**: Supabase PostgreSQL migrations and table definitions. |
 | **`web-ui/`** | **Frontend**: The Next.js / TypeScript user interface. |
 | `api.exe` | Compiled backend binary (Windows). |
-| `start_all.bat` | One-click startup script for the entire platform. |
+| `start_all.bat` | One-click startup script for the entire platform.
+
+---
+
+## 🗄️ Database Schema (`schema/`)
+Supabase PostgreSQL tables and migrations.
+
+| Table | Purpose |
+| :--- | :--- |
+| `companies` | Company master data (CIK, name, sector). |
+| `financial_periods` | Fiscal periods linked to companies. |
+| `cases` | Valuation case management. |
+| `fsap_extractions` | **FSAP Cache**: Extracted financial statements (JSONB `data` column). |
+| `projection_assumptions` | **Dynamic Assumptions**: JSONB columns for `node_drivers`, `segment_growth`. |
+| `common_size_baselines` | **Common-Size Defaults**: Historical baseline drivers + `custom_items` JSONB. |
+| `projected_financials` | **Projection Cache**: Projected statements stored as JSONB. |
+| `valuation_params` | DCF/Valuation parameters per case. | |
 
 ---
 
@@ -66,14 +83,42 @@ HTTP handlers and routing logic.
 | Directory | Purpose |
 | :--- | :--- |
 | **`agent/`** | **Orchestration**: Logic for managing AI agent lifecycles and tasks. |
-| **`calc/`** | **Calculation Engine**: Financial math, ratio calculations, and valuation model logic (FSAP engine). |
+| **`calc/`** | **Calculation Engine**: Financial math, ratio calculations, common-size analysis, and valuation models. |
 | **`debate/`** | **Multi-Agent Debate**: Debate orchestration, agent definitions, and consensus building. |
 | **`edgar/`** | **SEC Integration**: Clients for SEC EDGAR, filing retrieval, and parsing. Includes `segment_agent.go`, `qualitative_agents.go`. |
 | **`fee/`** | **Financial Extraction Engine**: Advanced logic for parsing 10-K HTML, locating tables, and extracting data. |
 | **`ingest/`** | **Data Pipeline**: Workflows for ingesting raw data into the system. |
 | **`llm/`** | **LLM Providers**: Provider implementations for LLMs (DeepSeek, Qwen, Gemini, etc.). |
+| **`projection/`** | **Projection Engine**: Financial statement articulation and forecasting. |
 | **`prompt/`** | **Prompt Library**: Runtime prompt loading, registry, and template rendering. |
+| **`store/`** | **Data Store**: Database connections, caching (FSAPCache), and persistence layer. |
 | **`utils/`** | **Shared Utilities**: Logging, error handling, JSON helpers, and common tools. |
+
+#### `pkg/core/calc/` (Calculation Engine)
+| File | Purpose |
+| :--- | :--- |
+| `types.go` | Core data structures (`BalanceSheet`, `IncomeStatement`, `CashFlowStatement`). |
+| `common_size.go` | Common-size analysis and baseline assumption generation. |
+| `aggregation.go` | Statement aggregation and rollup logic. |
+| `valuation.go` | DCF and valuation model calculations. |
+| `analysis.go` | Ratio analysis and financial health metrics. |
+| `three_level.go` | Three-level standardization mapping. |
+
+#### `pkg/core/projection/` (Projection Engine)
+| File | Purpose |
+| :--- | :--- |
+| `engine.go` | `ProjectionEngine` struct and `ProjectYear()` core logic. |
+| `skeleton.go` | `StandardSkeleton` - Fixed financial model structure ensuring A=L+E. |
+| `strategy.go` | `ProjectionStrategy` interface + implementations (Growth, PriceVolume, Margin). |
+| `selector.go` | `StrategySelector` - AI dynamic strategy selection based on data discovery. |
+| `adapter.go` | `ConvertDebateReportToAssumptions()` - Debate → Engine bridge. |
+| `mapper.go` | `MapFromCommonSizeDefaults()` - Calc → Projection bridge. |
+
+#### `pkg/core/store/` (Data Store)
+| File | Purpose |
+| :--- | :--- |
+| `db.go` | Database connection pool initialization (Supabase PostgreSQL). |
+| `fsap_cache.go` | `FSAPCache` - Hybrid vault (DB + FileSystem) for FSAP extractions. |
 
 ### `pkg/models/`
 Data structures and database models (structs) shared across the application.

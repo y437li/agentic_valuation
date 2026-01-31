@@ -19,76 +19,6 @@ func NewProjectionEngine(skeleton *StandardSkeleton) *ProjectionEngine {
 	}
 }
 
-// ProjectedFinancials holds the articulated statements for a projected year
-type ProjectedFinancials struct {
-	Year            int
-	IncomeStatement *edgar.IncomeStatement
-	BalanceSheet    *edgar.BalanceSheet
-	CashFlow        *edgar.CashFlowStatement
-	Segments        []edgar.StandardizedSegment // Granular support
-}
-
-// ProjectionAssumptions defines the drivers for a specific year
-type ProjectionAssumptions struct {
-	RevenueGrowth float64 // %
-	COGSPercent   float64 // % of Revenue
-
-	// SG&A Breakdown (Priority over SGAPercent)
-	SellingMarketingPercent float64 // % of Revenue
-	GeneralAdminPercent     float64 // % of Revenue
-
-	// Fallback/Aggregate
-	SGAPercent float64 // % of Revenue
-
-	RDPercent float64 // % of Revenue
-	TaxRate   float64 // % of EBT
-
-	// Working Capital Drivers
-	DSO float64 // Days
-	DSI float64 // Days
-	DPO float64 // Days
-
-	// Capex
-	CapexPercent float64 // % of Revenue
-
-	// Depreciation Drivers
-	UsefulLifeForecast  float64 // Years (Gross PPE / Depn)
-	DepreciationPercent float64 // % of Gross PPE
-
-	// Valuation Drivers (Carried through for DCF)
-	// WACC           float64 // Deprecated in favor of dynamic components
-	TerminalGrowth float64 // %
-
-	// Dynamic WACC Components
-	UnleveredBeta     float64
-	RiskFreeRate      float64
-	MarketRiskPremium float64
-	PreTaxCostOfDebt  float64
-	TargetDebtEquity  float64 // D/E ratio
-
-	// Dynamic Linkage (V3 Feature)
-	NodeDrivers map[string]float64
-
-	// Segment Drivers (Sum-of-Parts)
-	// Key: Segment Name (normalized), Value: Growth Rate (decimal)
-	SegmentGrowth map[string]float64
-
-	// Common Size Granularity (New)
-	StockBasedCompPercent float64 // % of Revenue (Add-back to CF)
-	DividendPayoutRatio   float64 // % of Net Income
-	CashInterestRate      float64 // % on Cash Balance
-	DebtInterestRate      float64 // % on Debt Balance
-
-	// Working Capital (Percentage Method)
-	ReceivablesPercent     float64 // % of Revenue
-	InventoryPercent       float64 // % of Revenue
-	AccountsPayablePercent float64 // % of Revenue
-	DeferredRevenuePercent float64 // % of Revenue
-
-	// Capital Structure
-	SharesOutstanding float64 // Millions
-}
-
 // ProjectYear calculates T+1 financials based on T-0 (history) and assumptions
 func (e *ProjectionEngine) ProjectYear(
 	prevIS *edgar.IncomeStatement,
@@ -98,7 +28,35 @@ func (e *ProjectionEngine) ProjectYear(
 	targetYear int,
 ) *ProjectedFinancials {
 
-	// 1. IS Waterfall
+	// 1. Income Statement
+	projIS, projSegments, projNI, projDividends, projRev := e.projectIncomeStatement(prevIS, prevBS, prevSegments, assumptions)
+
+	// Extract COGS for BS drivers (Inventory/AP often drive off COGS)
+	projCOGS := getValue(projIS.GrossProfitSection.CostOfGoodsSold)
+
+	// 2. Balance Sheet
+	projBS, revolverNeeded, projDep, projCapex, projSBC := e.projectBalanceSheet(prevBS, assumptions, projRev, projCOGS, projNI, projDividends)
+
+	// 3. Cash Flow
+	projCF := e.projectCashFlow(prevBS, projBS, projNI, projDep, projCapex, projSBC, revolverNeeded, projDividends)
+
+	return &ProjectedFinancials{
+		Year:            targetYear,
+		IncomeStatement: projIS,
+		BalanceSheet:    projBS,
+		CashFlow:        projCF,
+		Segments:        projSegments,
+	}
+}
+
+// projectIncomeStatement calculates the projected Income Statement
+func (e *ProjectionEngine) projectIncomeStatement(
+	prevIS *edgar.IncomeStatement,
+	prevBS *edgar.BalanceSheet,
+	prevSegments []edgar.StandardizedSegment,
+	assumptions ProjectionAssumptions,
+) (*edgar.IncomeStatement, []edgar.StandardizedSegment, float64, float64, float64) {
+
 	// -------------------------------------------------------------------------
 	// Revenue Logic: SOTP vs Aggregate
 	// -------------------------------------------------------------------------
@@ -242,7 +200,6 @@ func (e *ProjectionEngine) ProjectYear(
 	// Dynamic Item Projection (NodeDrivers)
 	// -------------------------------------------------------------------------
 	// Project AdditionalItems using NodeDrivers map (% of Revenue).
-	// Prefix convention: IS-GrossProfit, IS-OpCost, IS-NonOp, IS-Tax, CF-Op, CF-Inv, CF-Fin, BS-CA, BS-NCA, BS-CL, BS-NCL, BS-Eq
 	if assumptions.NodeDrivers != nil {
 		for key, pct := range assumptions.NodeDrivers {
 			projValue := projRev * pct
@@ -279,11 +236,22 @@ func (e *ProjectionEngine) ProjectYear(
 		}
 	}
 
-	// 2. Balance Sheet Drivers & Rollforward
-	// -------------------------------------------------------------------------
-	// 2. Balance Sheet Drivers & Rollforward
+	return projIS, projSegments, projNI, projDividends, projRev
+}
+
+// projectBalanceSheet calculates the projected Balance Sheet
+func (e *ProjectionEngine) projectBalanceSheet(
+	prevBS *edgar.BalanceSheet,
+	assumptions ProjectionAssumptions,
+	projRev float64,
+	projCOGS float64, // Needed for DSI/DPO
+	projNI float64,
+	projDividends float64,
+) (*edgar.BalanceSheet, float64, float64, float64, float64) {
+
 	// -------------------------------------------------------------------------
 	// A. Current Assets (Drivers)
+	// -------------------------------------------------------------------------
 	var projAR float64
 	if assumptions.ReceivablesPercent != 0 {
 		projAR = projRev * assumptions.ReceivablesPercent
@@ -293,10 +261,7 @@ func (e *ProjectionEngine) ProjectYear(
 
 	var projInv float64
 	if assumptions.InventoryPercent != 0 {
-		// Inventory usually drives off COGS, but common-size might express as % of Revenue.
-		// If InventoryPercent came from Revenue, we multiply by Revenue.
-		// If DSI is used, we use COGS.
-		// Assuming InventoryPercent is % of REVENUE (consistent with calc package).
+		// Assuming InventoryPercent is % of REVENUE (consistent with common_size)
 		projInv = projRev * assumptions.InventoryPercent
 	} else {
 		projInv = (-projCOGS / 365.0) * assumptions.DSI
@@ -309,7 +274,9 @@ func (e *ProjectionEngine) ProjectYear(
 	projOtherCA := prevOtherCA
 	projSTInvest := prevSTInvest
 
+	// -------------------------------------------------------------------------
 	// B. Non-Current Assets (PPE + Rollforwards)
+	// -------------------------------------------------------------------------
 	// PPE
 	prevPPEAtCost := getValue(prevBS.NoncurrentAssets.PPEAtCost)
 	prevAccumDep := math.Abs(getValue(prevBS.NoncurrentAssets.AccumulatedDepreciation))
@@ -342,17 +309,18 @@ func (e *ProjectionEngine) ProjectYear(
 	prevDTA := getValue(prevBS.NoncurrentAssets.DeferredTaxAssetsLT)
 	prevOtherNCA := getValue(prevBS.NoncurrentAssets.OtherNoncurrentAssets)
 
-	// Hold constant
 	projGoodwill := prevGoodwill
 	projIntangibles := prevIntangibles
 	projLTI := prevLTI
 	projDTA := prevDTA
 	projOtherNCA := prevOtherNCA
 
+	// -------------------------------------------------------------------------
 	// C. Current Liabilities (Drivers)
+	// -------------------------------------------------------------------------
 	var projAP float64
 	if assumptions.AccountsPayablePercent != 0 {
-		projAP = projRev * assumptions.AccountsPayablePercent // Logic: AP often % of Rev in simple models, or COGS
+		projAP = projRev * assumptions.AccountsPayablePercent
 	} else {
 		projAP = (-projCOGS / 365.0) * assumptions.DPO
 	}
@@ -361,29 +329,30 @@ func (e *ProjectionEngine) ProjectYear(
 	if assumptions.DeferredRevenuePercent != 0 {
 		projDefRev = projRev * assumptions.DeferredRevenuePercent
 	} else {
-		// Rollforward if no driver? Or use 0?
-		// Check prev
 		prevDefRev := getValue(prevBS.CurrentLiabilities.DeferredRevenueCurrent)
 		projDefRev = prevDefRev // Naive rollforward
 	}
 
-	// Rollforward Others
 	prevAccrued := getValue(prevBS.CurrentLiabilities.AccruedLiabilities)
 	prevOtherCL := getValue(prevBS.CurrentLiabilities.OtherCurrentLiabilities)
 
 	projAccrued := prevAccrued
 	projOtherCL := prevOtherCL
 
+	// -------------------------------------------------------------------------
 	// D. Non-Current Liabilities
+	// -------------------------------------------------------------------------
 	prevDTL := getValue(prevBS.NoncurrentLiabilities.DeferredTaxLiabilities)
 	prevOtherNCL := getValue(prevBS.NoncurrentLiabilities.OtherNoncurrentLiabilities)
-	// prevLTD := getValue(prevBS.NoncurrentLiabilities.LongTermDebt) // Already loaded at top
+	prevLTD := getValue(prevBS.NoncurrentLiabilities.LongTermDebt)
 
 	projDTL := prevDTL
 	projOtherNCL := prevOtherNCL
 	projLTD := prevLTD // Debt held constant before plug
 
+	// -------------------------------------------------------------------------
 	// E. Equity
+	// -------------------------------------------------------------------------
 	prevStock := getValue(prevBS.Equity.CommonStockAPIC)
 	prevRE := getValue(prevBS.Equity.RetainedEarningsDeficit)
 	prevNCI := getValue(prevBS.Equity.NoncontrollingInterests)
@@ -399,16 +368,13 @@ func (e *ProjectionEngine) ProjectYear(
 	projAOCI := prevAOCI
 	projTreasury := prevTreasury
 
-	// 3. Cash Flow (Partial Logic for Indirect Method)
 	// -------------------------------------------------------------------------
-	// We need these for the cash flow statement, but first we plug Cash.
-
-	// 4. Balance Sheet Balancing (The Plug)
+	// F. Balance Sheet Balancing (The Plug)
 	// -------------------------------------------------------------------------
 	// Strategy: Cash = (L + E) - (Non-Cash Assets)
 
 	// Sum L + E (Excluding ST Debt Plug)
-	clTotalNoPlug := projAP + projAccrued + projOtherCL
+	clTotalNoPlug := projAP + projAccrued + projOtherCL + projDefRev
 	nclTotal := projLTD + projDTL + projOtherNCL
 	eqTotal := projStock + projRE + projNCI + projAOCI + projTreasury
 
@@ -429,7 +395,7 @@ func (e *ProjectionEngine) ProjectYear(
 	}
 
 	projCash := derivedCash
-	projDebtST := revolverNeeded // Assuming 0 prev ST Debt for simplicity or pure revolver
+	projDebtST := revolverNeeded
 	negProjAccumDep := -projAccumDep
 
 	// Construct Projected BS
@@ -477,12 +443,7 @@ func (e *ProjectionEngine) ProjectYear(
 		},
 	}
 
-	calc.CalculateBalanceSheetTotals(projBS)
-
-	// -------------------------------------------------------------------------
-	// Dynamic Item Projection (NodeDrivers) for Balance Sheet and Cash Flow
-	// -------------------------------------------------------------------------
-	// Note: BS AdditionalItems use []FSAPValue, not []AdditionalItem
+	// Dynamic Item Projection (NodeDrivers) for Balance Sheet
 	if assumptions.NodeDrivers != nil {
 		for key, pct := range assumptions.NodeDrivers {
 			projValue := projRev * pct
@@ -490,7 +451,6 @@ func (e *ProjectionEngine) ProjectYear(
 			*projValuePtr = projValue
 
 			switch {
-			// === Balance Sheet ===
 			case len(key) > 6 && key[:6] == "BS-CA:":
 				label := key[7:]
 				projBS.CurrentAssets.AdditionalItems = append(
@@ -525,17 +485,40 @@ func (e *ProjectionEngine) ProjectYear(
 		}
 	}
 
+	calc.CalculateBalanceSheetTotals(projBS)
+
+	return projBS, revolverNeeded, projDep, projCapex, projSBC
+}
+
+// projectCashFlow calculates the projected Cash Flow Statement
+func (e *ProjectionEngine) projectCashFlow(
+	prevBS *edgar.BalanceSheet,
+	projBS *edgar.BalanceSheet,
+	projNI float64,
+	projDep float64,
+	projCapex float64,
+	projSBC float64,
+	revolverNeeded float64, // Used for Financing
+	projDividends float64,
+) *edgar.CashFlowStatement {
+
 	// 5. Reconcile Cash Flow
-	// prevCash already fetched
+	// prevCash already fetched in BS step, but we need Change in Cash for check
+	prevCash := getValue(prevBS.CurrentAssets.CashAndEquivalents)
+	projCash := getValue(projBS.CurrentAssets.CashAndEquivalents)
+
+	// Working Capital Changes
 	prevAR := getValue(prevBS.CurrentAssets.AccountsReceivableNet)
 	prevInv := getValue(prevBS.CurrentAssets.Inventories)
 	prevAP := getValue(prevBS.CurrentLiabilities.AccountsPayable)
 
+	projAR := getValue(projBS.CurrentAssets.AccountsReceivableNet)
+	projInv := getValue(projBS.CurrentAssets.Inventories)
+	projAP := getValue(projBS.CurrentLiabilities.AccountsPayable)
+
 	chgAR := -(projAR - prevAR)
 	chgInv := -(projInv - prevInv)
 	chgAP := (projAP - prevAP)
-	// Note: We need to handle other Current Assets/Liabilities changes for completeness
-	// but keeping consistent with V2.0 logic for now.
 
 	finalNetChange := projCash - prevCash
 
@@ -549,18 +532,16 @@ func (e *ProjectionEngine) ProjectYear(
 		OperatingActivities: &edgar.CFOperatingSection{
 			NetIncomeStart:           &edgar.FSAPValue{Value: &projNI},
 			DepreciationAmortization: &edgar.FSAPValue{Value: &projDep},
-			// Add SBC line item? Edgar struct might not have explicit SBC field in standard version
-			// Assuming it's wrapped or we leave it implicit in the total
-			ChangeReceivables: &edgar.FSAPValue{Value: &chgAR},
-			ChangeInventory:   &edgar.FSAPValue{Value: &chgInv},
-			ChangePayables:    &edgar.FSAPValue{Value: &chgAP},
+			ChangeReceivables:        &edgar.FSAPValue{Value: &chgAR},
+			ChangeInventory:          &edgar.FSAPValue{Value: &chgInv},
+			ChangePayables:           &edgar.FSAPValue{Value: &chgAP},
 		},
 		InvestingActivities: &edgar.CFInvestingSection{
 			Capex: &edgar.FSAPValue{Value: &projCapex},
 		},
 		FinancingActivities: &edgar.CFFinancingSection{
 			DebtProceeds:  &edgar.FSAPValue{Value: &revolverNeeded},
-			DividendsPaid: &edgar.FSAPValue{Value: &projDividends}, // Corrected Field Name
+			DividendsPaid: &edgar.FSAPValue{Value: &projDividends},
 		},
 		CashSummary: &edgar.CashSummarySection{
 			NetCashOperating: &edgar.FSAPValue{Value: &netCashOp},
@@ -572,19 +553,5 @@ func (e *ProjectionEngine) ProjectYear(
 		},
 	}
 
-	return &ProjectedFinancials{
-		Year:            targetYear,
-		IncomeStatement: projIS,
-		BalanceSheet:    projBS,
-		CashFlow:        projCF,
-		Segments:        projSegments, // New
-	}
-}
-
-// Helper to safely unpack value
-func getValue(v *edgar.FSAPValue) float64 {
-	if v != nil && v.Value != nil {
-		return *v.Value
-	}
-	return 0
+	return projCF
 }
