@@ -58,6 +58,7 @@ func AnalyzeFinancials(current *edgar.FSAPDataResponse, history []*edgar.FSAPDat
 	// Income Statement Common Size
 	is := current.IncomeStatement
 	if is.GrossProfitSection != nil {
+		addIS("Revenues", is.GrossProfitSection.Revenues) // Key matches main.go expectation
 		addIS("cost_of_goods_sold", is.GrossProfitSection.CostOfGoodsSold)
 		addIS("gross_profit", is.GrossProfitSection.GrossProfit)
 	}
@@ -105,12 +106,21 @@ func AnalyzeFinancials(current *edgar.FSAPDataResponse, history []*edgar.FSAPDat
 
 		if is.GrossProfitSection != nil && prior.IncomeStatement.GrossProfitSection != nil {
 			g := calcGrowth(is.GrossProfitSection.Revenues, prior.IncomeStatement.GrossProfitSection.Revenues)
-			analysis.IncomeStatement["revenue_growth"] = &AnalysisResult{Value: g}
+			if rev := analysis.IncomeStatement["Revenues"]; rev != nil {
+				rev.GrowthYoY = g // Populate field for main.go
+			}
+			analysis.IncomeStatement["revenue_growth"] = &AnalysisResult{Value: g} // Keep legacy key too
 		}
 		if is.NetIncomeSection != nil && prior.IncomeStatement.NetIncomeSection != nil {
 			g := calcGrowth(is.NetIncomeSection.NetIncomeToCommon, prior.IncomeStatement.NetIncomeSection.NetIncomeToCommon)
 			analysis.IncomeStatement["net_income_growth"] = &AnalysisResult{Value: g}
 		}
+	}
+
+	// 3. Level 2 Analysis (Margins)
+	threeLevel := PerformThreeLevelAnalysis(current, prior)
+	if threeLevel != nil {
+		analysis.Margins = threeLevel.Level2
 	}
 
 	return analysis
