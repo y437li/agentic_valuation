@@ -479,10 +479,28 @@ type YearData struct {
 
 // ExtractedNote represents a parsed note from SEC filing
 type ExtractedNote struct {
-	NoteNumber     string                 `json:"note_number"`     // "Note 1", "Note 25"
-	NoteTitle      string                 `json:"note_title"`      // "Segment Information"
-	NoteCategory   string                 `json:"note_category"`   // Category classification (use NoteCategoryXxx from note_index_agent.go)
-	RawText        string                 `json:"raw_text"`        // Original markdown text
-	StructuredData map[string]interface{} `json:"structured_data"` // LLM-extracted fields
-	SourceDoc      string                 `json:"source_doc"`      // Filing accession number for provenance
+	NoteNumber     string                 `json:"note_number"`      // "Note 1", "Note 25"
+	NoteTitle      string                 `json:"note_title"`       // "Segment Information"
+	NoteCategory   string                 `json:"note_category"`    // Category classification (use NoteCategoryXxx from note_index_agent.go)
+	RawText        string                 `json:"raw_text"`         // Original markdown text
+	StructuredData map[string]interface{} `json:"structured_data"`  // LLM-extracted fields
+	SourceDoc      string                 `json:"source_doc"`       // Filing accession number for provenance
+	Tables         []NoteTable            `json:"tables,omitempty"` // Extracted tables for normalized storage
+}
+
+// NoteTable represents a table extracted from a note
+type NoteTable struct {
+	Index int            `json:"index"`
+	Title string         `json:"title"`
+	Rows  []NoteTableRow `json:"rows"`
+}
+
+// NoteTableRow represents a single row from a note table (for assumption generation)
+type NoteTableRow struct {
+	RowLabel     string   `json:"row_label"`     // e.g., "Services Revenue"
+	MappedField  string   `json:"mapped_field"`  // Standard field name if mapped
+	ColumnYear   int      `json:"column_year"`   // Fiscal year
+	ColumnPeriod string   `json:"column_period"` // Q1/Q2/Q3/FY
+	Value        *float64 `json:"value"`         // Numeric value (nil if non-numeric)
+	ValueText    string   `json:"value_text"`    // Original text
 }

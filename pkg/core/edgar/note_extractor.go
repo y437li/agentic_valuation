@@ -129,6 +129,9 @@ func (e *NoteExtractor) extractSingleNote(ctx context.Context, noteText string, 
 	// Categorize the note
 	category := e.categorizeNote(noteTitle)
 
+	// Detect and extract tables within the note
+	tables := e.extractTablesFromNote(ctx, noteText, meta.FiscalYear)
+
 	// Use LLM to extract structured data
 	structuredData, err := e.llmExtractStructure(ctx, noteText, category)
 	if err != nil {
@@ -140,6 +143,7 @@ func (e *NoteExtractor) extractSingleNote(ctx context.Context, noteText string, 
 			RawText:        truncateText(noteText, 50000),
 			StructuredData: nil,
 			SourceDoc:      meta.AccessionNumber,
+			Tables:         tables,
 		}, nil
 	}
 
@@ -150,6 +154,7 @@ func (e *NoteExtractor) extractSingleNote(ctx context.Context, noteText string, 
 		RawText:        truncateText(noteText, 50000),
 		StructuredData: structuredData,
 		SourceDoc:      meta.AccessionNumber,
+		Tables:         tables,
 	}, nil
 }
 
@@ -250,4 +255,106 @@ func cleanJSONResponse(resp string) string {
 		return resp[start : end+1]
 	}
 	return resp
+}
+
+// extractTablesFromNote detects and extracts tables from note text
+func (e *NoteExtractor) extractTablesFromNote(ctx context.Context, noteText string, fiscalYear int) []NoteTable {
+	// Detect markdown tables (lines with | separators)
+	tableBlocks := e.detectMarkdownTables(noteText)
+	if len(tableBlocks) == 0 {
+		return nil
+	}
+
+	var tables []NoteTable
+	for i, block := range tableBlocks {
+		table := e.extractTableRows(ctx, block, i, fiscalYear)
+		if len(table.Rows) > 0 {
+			tables = append(tables, table)
+		}
+	}
+
+	return tables
+}
+
+// detectMarkdownTables finds markdown table blocks in text
+func (e *NoteExtractor) detectMarkdownTables(text string) []string {
+	var tables []string
+	lines := strings.Split(text, "\n")
+
+	inTable := false
+	var tableLines []string
+
+	for _, line := range lines {
+		// Check if line contains table structure (| character)
+		if strings.Contains(line, "|") && strings.Count(line, "|") >= 2 {
+			inTable = true
+			tableLines = append(tableLines, line)
+		} else if inTable {
+			// End of table
+			if len(tableLines) >= 3 { // At least header + separator + 1 data row
+				tables = append(tables, strings.Join(tableLines, "\n"))
+			}
+			tableLines = nil
+			inTable = false
+		}
+	}
+
+	// Handle table at end of text
+	if len(tableLines) >= 3 {
+		tables = append(tables, strings.Join(tableLines, "\n"))
+	}
+
+	return tables
+}
+
+// extractTableRows uses LLM to extract structured rows from a table
+func (e *NoteExtractor) extractTableRows(ctx context.Context, tableText string, tableIndex int, fiscalYear int) NoteTable {
+	systemPrompt := `You are a Financial Table Parser. Extract rows from markdown tables as structured JSON.
+Return JSON: {"title": "...", "rows": [{"label": "...", "values": [{"year": 2024, "value": 1234.5}, ...]}]}`
+
+	userPrompt := fmt.Sprintf(`Parse this markdown table from a SEC filing (fiscal year %d):
+
+%s
+
+Return JSON with extracted rows. For each row, extract the label and all numeric values with their year columns.`, fiscalYear, tableText)
+
+	resp, err := e.provider.Generate(ctx, systemPrompt, userPrompt)
+	if err != nil {
+		return NoteTable{Index: tableIndex}
+	}
+
+	// Parse response
+	var parsed struct {
+		Title string `json:"title"`
+		Rows  []struct {
+			Label  string `json:"label"`
+			Values []struct {
+				Year  int      `json:"year"`
+				Value *float64 `json:"value"`
+			} `json:"values"`
+		} `json:"rows"`
+	}
+
+	cleaned := cleanJSONResponse(resp)
+	if err := json.Unmarshal([]byte(cleaned), &parsed); err != nil {
+		return NoteTable{Index: tableIndex}
+	}
+
+	// Convert to NoteTableRow format
+	var rows []NoteTableRow
+	for _, r := range parsed.Rows {
+		for _, v := range r.Values {
+			rows = append(rows, NoteTableRow{
+				RowLabel:   r.Label,
+				ColumnYear: v.Year,
+				Value:      v.Value,
+			})
+		}
+	}
+
+	return NoteTable{
+		Index: tableIndex,
+		Title: parsed.Title,
+		Rows:  rows,
+	}
 }

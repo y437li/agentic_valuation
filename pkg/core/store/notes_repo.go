@@ -42,6 +42,7 @@ func (r *NotesRepo) SaveNote(ctx context.Context, note *edgar.ExtractedNote, met
 		ticker = meta.Tickers[0]
 	}
 
+	// Insert note and get ID for table rows
 	query := `
 		INSERT INTO sec_filing_notes (
 			cik, ticker, accession_number, fiscal_year, fiscal_period,
@@ -55,15 +56,54 @@ func (r *NotesRepo) SaveNote(ctx context.Context, note *edgar.ExtractedNote, met
 			raw_text = EXCLUDED.raw_text,
 			structured_data = EXCLUDED.structured_data,
 			updated_at = NOW()
+		RETURNING id
 	`
 
-	_, err := r.pool.Exec(ctx, query,
+	var noteID string
+	err := r.pool.QueryRow(ctx, query,
 		meta.CIK, ticker, meta.AccessionNumber, meta.FiscalYear, meta.FiscalPeriod,
 		note.NoteNumber, note.NoteTitle, note.NoteCategory,
-		note.RawText, structuredJSON, "gemini", // TODO: get from provider
-	)
+		note.RawText, structuredJSON, "gemini",
+	).Scan(&noteID)
 	if err != nil {
 		return fmt.Errorf("failed to save note: %w", err)
+	}
+
+	// Save table rows if present
+	if len(note.Tables) > 0 {
+		if err := r.saveNoteTableRows(ctx, noteID, note.Tables); err != nil {
+			fmt.Printf("  Warning: failed to save table rows for %s: %v\n", note.NoteNumber, err)
+		}
+	}
+
+	return nil
+}
+
+// saveNoteTableRows saves normalized table rows to sec_note_tables
+func (r *NotesRepo) saveNoteTableRows(ctx context.Context, noteID string, tables []edgar.NoteTable) error {
+	// Delete existing rows for this note (upsert at note level)
+	_, err := r.pool.Exec(ctx, "DELETE FROM sec_note_tables WHERE note_id = $1", noteID)
+	if err != nil {
+		return err
+	}
+
+	query := `
+		INSERT INTO sec_note_tables (
+			note_id, table_index, table_title, row_label, mapped_field,
+			column_year, column_period, value, value_text
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`
+
+	for _, table := range tables {
+		for _, row := range table.Rows {
+			_, err := r.pool.Exec(ctx, query,
+				noteID, table.Index, table.Title, row.RowLabel, row.MappedField,
+				row.ColumnYear, row.ColumnPeriod, row.Value, row.ValueText,
+			)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
