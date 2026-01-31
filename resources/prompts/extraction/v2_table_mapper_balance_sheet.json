@@ -1,0 +1,19 @@
+{
+    "id": "extraction.table_mapper.balance_sheet",
+    "name": "Balance Sheet Table Mapper",
+    "category": "extraction",
+    "description": "Maps Balance Sheet line items to FSAP variables. Returns row indices and mappings, NOT values.",
+    "version": "2.0.0",
+    "architecture": "LLM_NAVIGATOR_GO_EXTRACTOR",
+    "system_prompt": "You are a Financial Data Analyst. Your job is to MAP line items in a financial table to standard FSAP variables.\n\nIMPORTANT: You are NOT extracting values. You are only MAPPING rows to variable names.\n\nFor each row, provide:\n1. row_index: 0-based index from first data row\n2. row_label: The exact text label from the table\n3. fsap_variable: The matching FSAP variable name (or \"UNIQUE\" if no match)\n4. item_type: \"ITEM\" | \"SUBTOTAL\" | \"TOTAL\"\n5. parent_section: The logical section key (e.g., \"current_assets_section\", \"equity_section\")\n6. confidence: 0.0-1.0 (1.0 = exact match)\n7. markdown_line: Line number in source markdown",
+    "user_prompt_template": "Map line items in this BALANCE SHEET table to FSAP variables.\n\nTABLE:\n{{.TableMarkdown}}\n\nFSAP VARIABLES TO MAP:\n\n=== CURRENT ASSETS (parent_section: \"current_assets_section\") ===\n- cash_and_equivalents: Cash and cash equivalents\n- short_term_investments\n- accounts_receivable_net\n- inventories\n- prepaid_expenses\n- other_current_assets\n- total_current_assets [SUBTOTAL]\n\n=== NON-CURRENT ASSETS (parent_section: \"non_current_assets_section\") ===\n- ppe_net\n- goodwill\n- intangibles_net\n- long_term_investments\n- deferred_tax_assets\n- other_noncurrent_assets\n- total_assets [TOTAL]\n\n=== CURRENT LIABILITIES (parent_section: \"current_liabilities_section\") ===\n- accounts_payable\n- accrued_expenses\n- current_debt\n- deferred_revenue_current\n- other_current_liabilities\n- total_current_liabilities [SUBTOTAL]\n\n=== NON-CURRENT LIABILITIES (parent_section: \"non_current_liabilities_section\") ===\n- long_term_debt\n- deferred_tax_liabilities\n- pension_liabilities\n- other_noncurrent_liabilities\n- total_liabilities [SUBTOTAL]\n\n=== EQUITY (parent_section: \"equity_section\") ===\n- common_stock\n- additional_paid_in_capital\n- retained_earnings\n- treasury_stock\n- accumulated_oci\n- total_equity [SUBTOTAL]\n- total_liabilities_equity [TOTAL]\n\nFor items NOT matching standard fields, use fsap_variable: \"UNIQUE\".\nIMPORTANT: For \"UNIQUE\" items, YOU MUST provide the correct parent_section key from the list above.\n\nOutput JSON:\n{\n  \"table_type\": \"balance_sheet\",\n  \"year_columns\": [{\"year\": 2024, \"column_index\": 1}],\n  \"row_mappings\": [\n    {\n      \"row_index\": 0,\n      \"row_label\": \"Cash and cash equivalents\",\n      \"fsap_variable\": \"cash_and_equivalents\",\n      \"item_type\": \"ITEM\",\n      \"parent_section\": \"current_assets_section\",\n      \"confidence\": 1.0\n    },\n    {\n      \"row_index\": 4,\n      \"row_label\": \"Restricted cash\",\n      \"fsap_variable\": \"UNIQUE\",\n      \"item_type\": \"ITEM\",\n      \"parent_section\": \"current_assets_section\",\n      \"confidence\": 0.9\n    }\n  ]\n}",
+    "response_schema_ref": "line_item_mapping",
+    "variables": [
+        {
+            "name": "TableMarkdown",
+            "type": "string",
+            "description": "Markdown table content to map",
+            "required": true
+        }
+    ]
+}

@@ -1,0 +1,59 @@
+# TIED Platform - Docker Compose
+# Usage: docker-compose up -d
+
+services:
+  # ===================
+  # Backend API
+  # ===================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-builder
+    ports:
+      - "8082:8082"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - ./config:/app/config:ro
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # ===================
+  # Frontend
+  # ===================
+  frontend:
+    build:
+      context: ./web-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api:8082
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ===================
+  # Database (Optional - if not using Supabase)
+  # ===================
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=tied
+      - POSTGRES_PASSWORD=tied_dev_password
+      - POSTGRES_DB=tied
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,0 +1,447 @@
+﻿{
+    "company":  "NVIDIA CORP",
+    "cik":  "0001045810",
+    "fiscal_year":  2022,
+    "fiscal_years":  null,
+    "fiscal_period":  "FY",
+    "is_amended":  false,
+    "source_document":  "10-K",
+    "balance_sheet":  {
+                          "current_assets":  {
+                                                 "cash_and_equivalents":  {
+                                                                              "value":  847,
+                                                                              "years":  {
+                                                                                            "current":  847
+                                                                                        },
+                                                                              "label":  "us-gaap:CashAndCashEquivalentsAtCarryingValue",
+                                                                              "xbrl_tag":  "us-gaap:CashAndCashEquivalentsAtCarryingValue"
+                                                                          },
+                                                 "short_term_investments":  {
+                                                                                "value":  10714,
+                                                                                "years":  {
+                                                                                              "current":  10714
+                                                                                          },
+                                                                                "label":  "us-gaap:MarketableSecuritiesCurrent",
+                                                                                "xbrl_tag":  "us-gaap:MarketableSecuritiesCurrent"
+                                                                            },
+                                                 "accounts_receivable_net":  {
+                                                                                 "value":  2429,
+                                                                                 "years":  {
+                                                                                               "current":  2429
+                                                                                           },
+                                                                                 "label":  "us-gaap:AccountsReceivableNetCurrent",
+                                                                                 "xbrl_tag":  "us-gaap:AccountsReceivableNetCurrent"
+                                                                             },
+                                                 "inventories":  {
+                                                                     "value":  1826,
+                                                                     "years":  {
+                                                                                   "current":  1826
+                                                                               },
+                                                                     "label":  "us-gaap:InventoryNet",
+                                                                     "xbrl_tag":  "us-gaap:InventoryNet"
+                                                                 },
+                                                 "calculated_total":  15816
+                                             },
+                          "noncurrent_assets":  {
+                                                    "long_term_investments":  {
+                                                                                  "value":  null
+                                                                              },
+                                                    "ppe_at_cost":  {
+                                                                        "value":  3557,
+                                                                        "years":  {
+                                                                                      "current":  3557
+                                                                                  },
+                                                                        "label":  "us-gaap:PropertyPlantAndEquipmentGross",
+                                                                        "xbrl_tag":  "us-gaap:PropertyPlantAndEquipmentGross"
+                                                                    },
+                                                    "accumulated_depreciation":  {
+                                                                                     "value":  1408,
+                                                                                     "years":  {
+                                                                                                   "current":  1408
+                                                                                               },
+                                                                                     "label":  "us-gaap:AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment",
+                                                                                     "xbrl_tag":  "us-gaap:AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment"
+                                                                                 },
+                                                    "ppe_net":  {
+                                                                    "value":  2149,
+                                                                    "years":  {
+                                                                                  "current":  2149
+                                                                              },
+                                                                    "label":  "us-gaap:PropertyPlantAndEquipmentNet",
+                                                                    "xbrl_tag":  "us-gaap:PropertyPlantAndEquipmentNet"
+                                                                },
+                                                    "intangibles":  {
+                                                                        "value":  2737,
+                                                                        "years":  {
+                                                                                      "current":  2737
+                                                                                  },
+                                                                        "label":  "us-gaap:IntangibleAssetsNetExcludingGoodwill",
+                                                                        "xbrl_tag":  "us-gaap:IntangibleAssetsNetExcludingGoodwill"
+                                                                    },
+                                                    "goodwill":  {
+                                                                     "value":  3.85,
+                                                                     "years":  {
+                                                                                   "current":  3.85
+                                                                               },
+                                                                     "label":  "us-gaap:Goodwill",
+                                                                     "xbrl_tag":  "us-gaap:Goodwill"
+                                                                 },
+                                                    "deferred_tax_assets_lt":  {
+                                                                                   "value":  806,
+                                                                                   "years":  {
+                                                                                                 "current":  806
+                                                                                             },
+                                                                                   "label":  "us-gaap:DeferredIncomeTaxAssetsNet",
+                                                                                   "xbrl_tag":  "us-gaap:DeferredIncomeTaxAssetsNet"
+                                                                               },
+                                                    "calculated_total":  5695.85
+                                                },
+                          "current_liabilities":  {
+                                                      "accounts_payable":  {
+                                                                               "value":  1149,
+                                                                               "years":  {
+                                                                                             "current":  1149
+                                                                                         },
+                                                                               "label":  "us-gaap:AccountsPayableCurrent",
+                                                                               "xbrl_tag":  "us-gaap:AccountsPayableCurrent"
+                                                                           },
+                                                      "accrued_liabilities":  {
+                                                                                  "value":  1777,
+                                                                                  "years":  {
+                                                                                                "current":  1777
+                                                                                            },
+                                                                                  "label":  "us-gaap:AccruedLiabilitiesCurrent",
+                                                                                  "xbrl_tag":  "us-gaap:AccruedLiabilitiesCurrent"
+                                                                              },
+                                                      "notes_payable_short_term_debt":  {
+                                                                                            "value":  null
+                                                                                        },
+                                                      "current_maturities_long_term_debt":  {
+                                                                                                "value":  999,
+                                                                                                "years":  {
+                                                                                                              "current":  999
+                                                                                                          },
+                                                                                                "label":  "us-gaap:LongTermDebtCurrent",
+                                                                                                "xbrl_tag":  "us-gaap:LongTermDebtCurrent"
+                                                                                            },
+                                                      "calculated_total":  3925
+                                                  },
+                          "noncurrent_liabilities":  {
+                                                         "long_term_debt":  {
+                                                                                "value":  5964,
+                                                                                "years":  {
+                                                                                              "current":  5964
+                                                                                          },
+                                                                                "label":  "us-gaap:LongTermDebtNoncurrent",
+                                                                                "xbrl_tag":  "us-gaap:LongTermDebtNoncurrent"
+                                                                            },
+                                                         "deferred_tax_liabilities":  {
+                                                                                          "value":  241,
+                                                                                          "years":  {
+                                                                                                        "current":  241
+                                                                                                    },
+                                                                                          "label":  "us-gaap:DeferredIncomeTaxLiabilitiesNet",
+                                                                                          "xbrl_tag":  "us-gaap:DeferredIncomeTaxLiabilitiesNet"
+                                                                                      },
+                                                         "calculated_total":  6205
+                                                     },
+                          "equity":  {
+                                         "common_stock_apic":  {
+                                                                   "value":  3,
+                                                                   "years":  {
+                                                                                 "current":  3
+                                                                             },
+                                                                   "label":  "us-gaap:CommonStockValue",
+                                                                   "xbrl_tag":  "us-gaap:CommonStockValue"
+                                                               },
+                                         "retained_earnings_deficit":  {
+                                                                           "value":  18908,
+                                                                           "years":  {
+                                                                                         "current":  18908
+                                                                                     },
+                                                                           "label":  "us-gaap:RetainedEarningsAccumulatedDeficit",
+                                                                           "xbrl_tag":  "us-gaap:RetainedEarningsAccumulatedDeficit"
+                                                                       },
+                                         "treasury_stock":  {
+                                                                "value":  10756,
+                                                                "years":  {
+                                                                              "current":  10756
+                                                                          },
+                                                                "label":  "us-gaap:TreasuryStockValue",
+                                                                "xbrl_tag":  "us-gaap:TreasuryStockValue"
+                                                            },
+                                         "accum_other_comprehensive_income":  {
+                                                                                  "value":  19,
+                                                                                  "years":  {
+                                                                                                "current":  19
+                                                                                            },
+                                                                                  "label":  "us-gaap:AccumulatedOtherComprehensiveIncomeLossNetOfTax",
+                                                                                  "xbrl_tag":  "us-gaap:AccumulatedOtherComprehensiveIncomeLossNetOfTax"
+                                                                              },
+                                         "noncontrolling_interests":  {
+                                                                          "value":  null
+                                                                      },
+                                         "calculated_total":  29686
+                                     },
+                          "_reported_for_validation":  {
+                                                           "total_current_assets":  {
+                                                                                        "value":  16055,
+                                                                                        "years":  {
+                                                                                                      "current":  16055
+                                                                                                  },
+                                                                                        "label":  "us-gaap:AssetsCurrent",
+                                                                                        "xbrl_tag":  "us-gaap:AssetsCurrent"
+                                                                                    },
+                                                           "total_assets":  {
+                                                                                "value":  28791,
+                                                                                "years":  {
+                                                                                              "current":  28791
+                                                                                          },
+                                                                                "label":  "us-gaap:Assets",
+                                                                                "xbrl_tag":  "us-gaap:Assets"
+                                                                            },
+                                                           "total_current_liabilities":  {
+                                                                                             "value":  3925,
+                                                                                             "years":  {
+                                                                                                           "current":  3925
+                                                                                                       },
+                                                                                             "label":  "us-gaap:LiabilitiesCurrent",
+                                                                                             "xbrl_tag":  "us-gaap:LiabilitiesCurrent"
+                                                                                         },
+                                                           "total_liabilities":  {
+                                                                                     "value":  11898,
+                                                                                     "years":  {
+                                                                                                   "current":  11898
+                                                                                               },
+                                                                                     "label":  "us-gaap:Liabilities",
+                                                                                     "xbrl_tag":  "us-gaap:Liabilities"
+                                                                                 },
+                                                           "total_equity":  {
+                                                                                "value":  26612,
+                                                                                "years":  {
+                                                                                              "current":  26612
+                                                                                          },
+                                                                                "label":  "us-gaap:StockholdersEquity",
+                                                                                "xbrl_tag":  "us-gaap:StockholdersEquity"
+                                                                            }
+                                                       }
+                      },
+    "income_statement":  {
+                             "revenues":  {
+                                              "value":  10918,
+                                              "years":  {
+                                                            "current":  10918
+                                                        },
+                                              "label":  "us-gaap:Revenues",
+                                              "xbrl_tag":  "us-gaap:Revenues"
+                                          },
+                             "cost_of_goods_sold":  {
+                                                        "value":  4150,
+                                                        "years":  {
+                                                                      "current":  4150
+                                                                  },
+                                                        "label":  "us-gaap:CostOfRevenue",
+                                                        "xbrl_tag":  "us-gaap:CostOfRevenue"
+                                                    },
+                             "sga_expenses":  {
+                                                  "value":  1093,
+                                                  "years":  {
+                                                                "current":  1093
+                                                            },
+                                                  "label":  "us-gaap:SellingGeneralAndAdministrativeExpense",
+                                                  "xbrl_tag":  "us-gaap:SellingGeneralAndAdministrativeExpense"
+                                              },
+                             "interest_expense":  {
+                                                      "value":  52,
+                                                      "years":  {
+                                                                    "current":  52
+                                                                },
+                                                      "label":  "us-gaap:InterestExpense",
+                                                      "xbrl_tag":  "us-gaap:InterestExpense"
+                                                  },
+                             "income_tax_expense":  {
+                                                        "value":  174,
+                                                        "years":  {
+                                                                      "current":  174
+                                                                  },
+                                                        "label":  "us-gaap:IncomeTaxExpenseBenefit",
+                                                        "xbrl_tag":  "us-gaap:IncomeTaxExpenseBenefit"
+                                                    },
+                             "_reported_for_validation":  {
+                                                              "gross_profit":  {
+                                                                                   "value":  6768,
+                                                                                   "years":  {
+                                                                                                 "current":  6768
+                                                                                             },
+                                                                                   "label":  "us-gaap:GrossProfit",
+                                                                                   "xbrl_tag":  "us-gaap:GrossProfit"
+                                                                               },
+                                                              "operating_income":  {
+                                                                                       "value":  1172,
+                                                                                       "years":  {
+                                                                                                     "current":  1172
+                                                                                                 },
+                                                                                       "label":  "us-gaap:OperatingIncomeLoss",
+                                                                                       "xbrl_tag":  "us-gaap:OperatingIncomeLoss"
+                                                                                   },
+                                                              "income_before_tax":  {
+                                                                                        "value":  2970,
+                                                                                        "years":  {
+                                                                                                      "current":  2970
+                                                                                                  },
+                                                                                        "label":  "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+                                                                                        "xbrl_tag":  "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"
+                                                                                    },
+                                                              "net_income":  {
+                                                                                 "value":  2796,
+                                                                                 "years":  {
+                                                                                               "current":  2796
+                                                                                           },
+                                                                                 "label":  "us-gaap:NetIncomeLoss",
+                                                                                 "xbrl_tag":  "us-gaap:NetIncomeLoss"
+                                                                             }
+                                                          }
+                         },
+    "cash_flow_statement":  {
+                                "net_income_start":  {
+                                                         "value":  2796,
+                                                         "years":  {
+                                                                       "current":  2796
+                                                                   },
+                                                         "label":  "us-gaap:NetIncomeLoss",
+                                                         "xbrl_tag":  "us-gaap:NetIncomeLoss"
+                                                     },
+                                "depreciation_amortization":  {
+                                                                  "value":  381,
+                                                                  "years":  {
+                                                                                "current":  381
+                                                                            },
+                                                                  "label":  "us-gaap:DepreciationDepletionAndAmortization",
+                                                                  "xbrl_tag":  "us-gaap:DepreciationDepletionAndAmortization"
+                                                              },
+                                "deferred_taxes":  {
+                                                       "value":  18,
+                                                       "years":  {
+                                                                     "current":  18
+                                                                 },
+                                                       "label":  "us-gaap:DeferredIncomeTaxExpenseBenefit",
+                                                       "xbrl_tag":  "us-gaap:DeferredIncomeTaxExpenseBenefit"
+                                                   },
+                                "stock_based_compensation":  {
+                                                                 "value":  844,
+                                                                 "years":  {
+                                                                               "current":  844
+                                                                           },
+                                                                 "label":  "us-gaap:ShareBasedCompensation",
+                                                                 "xbrl_tag":  "us-gaap:ShareBasedCompensation"
+                                                             },
+                                "changes_in_working_capital":  {
+                                                                   "value":  null
+                                                               },
+                                "capex":  {
+                                              "value":  null
+                                          },
+                                "investments_acquired_sold_net":  {
+                                                                      "value":  6145,
+                                                                      "years":  {
+                                                                                    "current":  6145
+                                                                                },
+                                                                      "label":  "us-gaap:NetCashProvidedByUsedInInvestingActivities",
+                                                                      "xbrl_tag":  "us-gaap:NetCashProvidedByUsedInInvestingActivities"
+                                                                  },
+                                "debt_issuance_retirement_net":  {
+                                                                     "value":  792,
+                                                                     "years":  {
+                                                                                   "current":  792
+                                                                               },
+                                                                     "label":  "us-gaap:NetCashProvidedByUsedInFinancingActivities",
+                                                                     "xbrl_tag":  "us-gaap:NetCashProvidedByUsedInFinancingActivities"
+                                                                 },
+                                "share_repurchases":  {
+                                                          "value":  null
+                                                      },
+                                "dividends":  {
+                                                  "value":  390,
+                                                  "years":  {
+                                                                "current":  390
+                                                            },
+                                                  "label":  "us-gaap:PaymentsOfDividends",
+                                                  "xbrl_tag":  "us-gaap:PaymentsOfDividends"
+                                              },
+                                "effect_exchange_rate":  {
+                                                             "value":  null
+                                                         },
+                                "_reported_for_validation":  {
+                                                                 "net_cash_operating":  {
+                                                                                            "value":  4761,
+                                                                                            "years":  {
+                                                                                                          "current":  4761
+                                                                                                      },
+                                                                                            "label":  "us-gaap:NetCashProvidedByUsedInOperatingActivities",
+                                                                                            "xbrl_tag":  "us-gaap:NetCashProvidedByUsedInOperatingActivities"
+                                                                                        },
+                                                                 "net_cash_investing":  {
+                                                                                            "value":  6145,
+                                                                                            "years":  {
+                                                                                                          "current":  6145
+                                                                                                      },
+                                                                                            "label":  "us-gaap:NetCashProvidedByUsedInInvestingActivities",
+                                                                                            "xbrl_tag":  "us-gaap:NetCashProvidedByUsedInInvestingActivities"
+                                                                                        },
+                                                                 "net_cash_financing":  {
+                                                                                            "value":  792,
+                                                                                            "years":  {
+                                                                                                          "current":  792
+                                                                                                      },
+                                                                                            "label":  "us-gaap:NetCashProvidedByUsedInFinancingActivities",
+                                                                                            "xbrl_tag":  "us-gaap:NetCashProvidedByUsedInFinancingActivities"
+                                                                                        },
+                                                                 "net_change_in_cash":  {
+                                                                                            "value":  null
+                                                                                        }
+                                                             }
+                            },
+    "supplemental_data":  {
+                              "statutory_tax_rate":  {
+                                                         "value":  5.9,
+                                                         "years":  {
+                                                                       "current":  5.9
+                                                                   },
+                                                         "label":  "us-gaap:EffectiveIncomeTaxRateContinuingOperations",
+                                                         "xbrl_tag":  "us-gaap:EffectiveIncomeTaxRateContinuingOperations"
+                                                     },
+                              "eps_basic":  {
+                                                "value":  1.15,
+                                                "years":  {
+                                                              "current":  1.15
+                                                          },
+                                                "label":  "us-gaap:EarningsPerShareBasic",
+                                                "xbrl_tag":  "us-gaap:EarningsPerShareBasic"
+                                            },
+                              "eps_diluted":  {
+                                                  "value":  1.13,
+                                                  "years":  {
+                                                                "current":  1.13
+                                                            },
+                                                  "label":  "us-gaap:EarningsPerShareDiluted",
+                                                  "xbrl_tag":  "us-gaap:EarningsPerShareDiluted"
+                                              },
+                              "shares_outstanding_basic":  {
+                                                               "value":  2439,
+                                                               "years":  {
+                                                                             "current":  2439
+                                                                         },
+                                                               "label":  "us-gaap:WeightedAverageNumberOfSharesOutstandingBasic",
+                                                               "xbrl_tag":  "us-gaap:WeightedAverageNumberOfSharesOutstandingBasic"
+                                                           },
+                              "shares_outstanding_diluted":  {
+                                                                 "value":  null
+                                                             }
+                          },
+    "metadata":  {
+                     "llm_provider":  "DEBUG: enableLLM=false, llmMode=\u0027\u0027, agentManager=true, useFEE=false | XBRL Only (Notes: 410102 chars)",
+                     "variables_mapped":  24,
+                     "variables_unmapped":  3,
+                     "processing_time_ms":  1639
+                 }
+}

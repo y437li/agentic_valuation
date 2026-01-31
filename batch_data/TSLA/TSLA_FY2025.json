@@ -1,0 +1,1664 @@
+{
+  "id": "0001628280-26-003952",
+  "cik": "0001318605",
+  "ticker": "TSLA",
+  "company_name": "Tesla, Inc.",
+  "fiscal_year": 2025,
+  "fiscal_period": "FY",
+  "form_type": "10-K",
+  "accession_number": "0001628280-26-003952",
+  "data": {
+    "company": "Tesla, Inc.",
+    "cik": "0001318605",
+    "fiscal_year": 2025,
+    "fiscal_years": null,
+    "fiscal_period": "FY",
+    "is_amended": false,
+    "source_document": "10-K",
+    "filing_url": "https://www.sec.gov/Archives/edgar/data/0001318605/000162828026003952/tsla-20251231.htm",
+    "balance_sheet": {
+      "current_assets": {
+        "cash_and_equivalents": {
+          "value": 16513,
+          "years": {
+            "2024": 16139,
+            "2025": 16513
+          },
+          "label": "Cash and cash equivalents"
+        },
+        "short_term_investments": {
+          "value": 27546,
+          "years": {
+            "2024": 20424,
+            "2025": 27546
+          },
+          "label": "Short-term investments"
+        },
+        "accounts_receivable_net": {
+          "value": 4576,
+          "years": {
+            "2024": 4418,
+            "2025": 4576
+          },
+          "label": "Accounts receivable, net"
+        },
+        "inventories": {
+          "value": 12392,
+          "years": {
+            "2024": 12017,
+            "2025": 12392
+          },
+          "label": "Inventory"
+        },
+        "additional_items": [
+          {
+            "value": 7615,
+            "years": {
+              "2024": 5362,
+              "2025": 7615
+            },
+            "label": "Prepaid expenses and other current assets"
+          }
+        ]
+      },
+      "noncurrent_assets": {
+        "long_term_investments": null,
+        "ppe_at_cost": null,
+        "accumulated_depreciation": null,
+        "ppe_net": {
+          "value": 40643,
+          "years": {
+            "2024": 35836,
+            "2025": 40643
+          },
+          "label": "Property, plant and equipment, net"
+        },
+        "intangibles": null,
+        "goodwill": null,
+        "deferred_tax_assets_lt": {
+          "value": 6925,
+          "years": {
+            "2024": 6524,
+            "2025": 6925
+          },
+          "label": "Deferred tax assets"
+        },
+        "additional_items": [
+          {
+            "value": 4912,
+            "years": {
+              "2024": 5581,
+              "2025": 4912
+            },
+            "label": "Operating lease vehicles, net"
+          },
+          {
+            "value": 4604,
+            "years": {
+              "2024": 4924,
+              "2025": 4604
+            },
+            "label": "Energy generation and storage systems, net"
+          },
+          {
+            "value": 6027,
+            "years": {
+              "2024": 5160,
+              "2025": 6027
+            },
+            "label": "Operating lease right-of-use assets"
+          },
+          {
+            "value": 1008,
+            "years": {
+              "2024": 1076,
+              "2025": 1008
+            },
+            "label": "Digital assets"
+          },
+          {
+            "value": 5045,
+            "years": {
+              "2024": 4609,
+              "2025": 5045
+            },
+            "label": "Other non-current assets"
+          }
+        ]
+      },
+      "current_liabilities": {
+        "accounts_payable": {
+          "value": 13371,
+          "years": {
+            "2024": 12474,
+            "2025": 13371
+          },
+          "label": "Accounts payable"
+        },
+        "accrued_liabilities": null,
+        "notes_payable_short_term_debt": null,
+        "current_maturities_long_term_debt": {
+          "value": 1640,
+          "years": {
+            "2024": 2456,
+            "2025": 1640
+          },
+          "label": "Current portion of debt and finance leases"
+        },
+        "additional_items": [
+          {
+            "value": 13279,
+            "years": {
+              "2024": 10723,
+              "2025": 13279
+            },
+            "label": "Accrued liabilities and other"
+          },
+          {
+            "value": 3424,
+            "years": {
+              "2024": 3168,
+              "2025": 3424
+            },
+            "label": "Deferred revenue"
+          }
+        ]
+      },
+      "noncurrent_liabilities": {
+        "long_term_debt": {
+          "value": 6736,
+          "years": {
+            "2024": 5757,
+            "2025": 6736
+          },
+          "label": "Debt and finance leases, net of current portion"
+        },
+        "deferred_tax_liabilities": {
+          "value": 3631,
+          "years": {
+            "2024": 3317,
+            "2025": 3631
+          },
+          "label": "Deferred revenue, net of current portion"
+        },
+        "additional_items": [
+          {
+            "value": 12860,
+            "years": {
+              "2024": 10495,
+              "2025": 12860
+            },
+            "label": "Other long-term liabilities"
+          }
+        ]
+      },
+      "equity": {
+        "common_stock_apic": {
+          "value": 42770,
+          "years": {
+            "2024": 38371,
+            "2025": 42770
+          },
+          "label": "Additional paid-in capital"
+        },
+        "retained_earnings_deficit": {
+          "value": 39003,
+          "years": {
+            "2024": 35209,
+            "2025": 39003
+          },
+          "label": "Retained earnings"
+        },
+        "treasury_stock": null,
+        "accum_other_comprehensive_income": {
+          "value": 0,
+          "years": {
+            "2024": -670,
+            "2025": 0
+          },
+          "label": "Accumulated other comprehensive income (loss)"
+        },
+        "noncontrolling_interests": null
+      },
+      "_reported_for_validation": {
+        "total_current_assets": {
+          "value": 68642,
+          "years": {
+            "2024": 58360,
+            "2025": 68642
+          }
+        },
+        "total_assets": {
+          "value": 137806,
+          "years": {
+            "2024": 122070,
+            "2025": 137806
+          }
+        },
+        "total_current_liabilities": {
+          "value": 31714,
+          "years": {
+            "2024": 28821,
+            "2025": 31714
+          }
+        },
+        "total_liabilities": {
+          "value": 54941,
+          "years": {
+            "2024": 48390,
+            "2025": 54941
+          }
+        },
+        "total_equity": {
+          "value": 82137,
+          "years": {
+            "2024": 72913,
+            "2025": 82137
+          }
+        }
+      }
+    },
+    "income_statement": {
+      "gross_profit_section": {
+        "revenues": {
+          "value": 94827,
+          "years": {
+            "2023": 96773,
+            "2024": 97690,
+            "2025": 94827
+          },
+          "label": "Total revenues"
+        },
+        "cost_of_goods_sold": {
+          "value": 77733,
+          "years": {
+            "2023": 79113,
+            "2024": 80240,
+            "2025": 77733
+          },
+          "label": "Total cost of revenues"
+        },
+        "gross_profit": {
+          "value": 17094,
+          "years": {
+            "2023": 17660,
+            "2024": 17450,
+            "2025": 17094
+          },
+          "label": "Gross profit"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Automotive sales",
+            "years": {
+              "2023": 78509,
+              "2024": 72480,
+              "2025": 65821
+            }
+          },
+          {
+            "key": "",
+            "label": "Automotive regulatory credits",
+            "years": {
+              "2023": 1790,
+              "2024": 2763,
+              "2025": 1993
+            }
+          },
+          {
+            "key": "",
+            "label": "Automotive leasing",
+            "years": {
+              "2023": 2120,
+              "2024": 1827,
+              "2025": 1712
+            }
+          },
+          {
+            "key": "",
+            "label": "Energy generation and storage",
+            "years": {
+              "2023": 6035,
+              "2024": 10086,
+              "2025": 12771
+            }
+          },
+          {
+            "key": "",
+            "label": "Services and other",
+            "years": {
+              "2023": 8319,
+              "2024": 10534,
+              "2025": 12530
+            }
+          },
+          {
+            "key": "",
+            "label": "Automotive sales",
+            "years": {
+              "2023": 65121,
+              "2024": 61870,
+              "2025": 56267
+            }
+          },
+          {
+            "key": "",
+            "label": "Automotive leasing",
+            "years": {
+              "2023": 1268,
+              "2024": 1003
+            }
+          },
+          {
+            "key": "",
+            "label": "Energy generation and storage",
+            "years": {
+              "2023": 4894,
+              "2024": 7446,
+              "2025": 8969
+            }
+          },
+          {
+            "key": "",
+            "label": "Services and other",
+            "years": {
+              "2023": 7830,
+              "2024": 9921,
+              "2025": 11599
+            }
+          }
+        ]
+      },
+      "operating_cost_section": {
+        "sga_expenses": {
+          "value": 5834,
+          "years": {
+            "2023": 4800,
+            "2024": 5150,
+            "2025": 5834
+          },
+          "label": "Selling, general and administrative"
+        },
+        "rd_expenses": {
+          "value": 6411,
+          "years": {
+            "2023": 3969,
+            "2024": 4540,
+            "2025": 6411
+          },
+          "label": "Research and development"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Restructuring and other",
+            "years": {
+              "2023": 0
+            }
+          }
+        ]
+      },
+      "non_operating_section": {
+        "interest_expense": {
+          "value": -338,
+          "years": {
+            "2023": -156,
+            "2024": -350,
+            "2025": -338
+          },
+          "label": "Interest expense"
+        },
+        "other_income_expense": {
+          "value": -419,
+          "years": {
+            "2025": -419
+          },
+          "label": "Other (expense) income, net"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Interest income",
+            "years": {
+              "2023": 1066,
+              "2024": 1569,
+              "2025": 1680
+            }
+          }
+        ]
+      },
+      "tax_adjustments_section": {
+        "income_tax_expense": {
+          "value": 1423,
+          "years": {
+            "2023": -5001,
+            "2024": 1837,
+            "2025": 1423
+          },
+          "label": "Provision for (benefit from) income taxes"
+        }
+      },
+      "net_income_section": {
+        "net_income_to_common": {
+          "value": 3794,
+          "years": {
+            "2023": 14997,
+            "2024": 7091,
+            "2025": 3794
+          },
+          "label": "Net income attributable to common stockholders"
+        },
+        "net_income_to_nci": {
+          "value": null,
+          "years": {
+            "2023": -23
+          },
+          "label": "Net income (loss) attributable to noncontrolling interests and redeemable noncontrolling interests in subsidiaries"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Net income",
+            "years": {
+              "2023": 14974,
+              "2024": 7153,
+              "2025": 3855
+            }
+          }
+        ]
+      },
+      "oci_section": {
+        "oci_foreign_currency": {
+          "value": 1038,
+          "years": {
+            "2024": -539,
+            "2025": 1038
+          },
+          "label": "Foreign currency translation adjustment"
+        },
+        "oci_securities": {
+          "value": -7,
+          "years": {
+            "2025": -7
+          },
+          "label": "Unrealized net (loss) gain on investments, net of tax"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Net loss realized and included in net income",
+            "years": {
+              "2024": 0,
+              "2025": 0
+            }
+          },
+          {
+            "key": "",
+            "label": "Comprehensive income",
+            "years": {
+              "2023": 15192,
+              "2024": 6626,
+              "2025": 4886
+            }
+          },
+          {
+            "key": "",
+            "label": "Comprehensive income (loss) attributable to noncontrolling interests and redeemable noncontrolling interests in subsidiaries",
+            "years": {
+              "2023": -23
+            }
+          },
+          {
+            "key": "",
+            "label": "Comprehensive income attributable to common stockholders",
+            "years": {
+              "2023": 15215,
+              "2024": 6564,
+              "2025": 4825
+            }
+          }
+        ]
+      },
+      "nonrecurring_section": {},
+      "_reported_for_validation": {
+        "gross_profit": {
+          "value": 17094
+        },
+        "operating_income": {
+          "value": 4355
+        },
+        "income_before_tax": {
+          "value": 5278
+        },
+        "net_income": {
+          "value": 3855
+        }
+      }
+    },
+    "cash_flow_statement": {
+      "operating_activities": {
+        "net_income_start": {
+          "value": 3855,
+          "years": {
+            "2023": 14974,
+            "2024": 7153,
+            "2025": 3855
+          },
+          "label": "Net income"
+        },
+        "depreciation_amortization": {
+          "value": 6148,
+          "years": {
+            "2023": 4667,
+            "2024": 5368,
+            "2025": 6148
+          },
+          "label": "Depreciation, amortization and impairment"
+        },
+        "deferred_taxes": {
+          "value": null,
+          "years": {
+            "2023": -6349
+          },
+          "label": "Deferred income taxes"
+        },
+        "stock_based_compensation": {
+          "value": 2825,
+          "years": {
+            "2023": 1812,
+            "2024": 1999,
+            "2025": 2825
+          },
+          "label": "Stock-based compensation"
+        },
+        "change_receivables": {
+          "value": -261,
+          "years": {
+            "2023": -586,
+            "2024": -1083,
+            "2025": -261
+          },
+          "label": "Accounts receivable"
+        },
+        "change_inventory": {
+          "value": -630,
+          "years": {
+            "2023": -1195,
+            "2025": -630
+          },
+          "label": "Inventory"
+        },
+        "change_payables": {
+          "value": 4376,
+          "years": {
+            "2023": 2605,
+            "2024": 3588,
+            "2025": 4376
+          },
+          "label": "Accounts payable, accrued and other liabilities"
+        },
+        "change_deferred_revenue": {
+          "value": null,
+          "years": {
+            "2023": 1532
+          },
+          "label": "Deferred revenue"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Inventory and purchase commitments write-downs"
+          },
+          {
+            "key": "",
+            "label": "Foreign currency transaction net unrealized loss (gain)",
+            "years": {
+              "2023": -144,
+              "2024": -73
+            }
+          },
+          {
+            "key": "",
+            "label": "Non-cash interest and other operating activities"
+          },
+          {
+            "key": "",
+            "label": "Digital assets loss (gain), net",
+            "years": {
+              "2024": -589
+            }
+          },
+          {
+            "key": "",
+            "label": "Operating lease vehicles",
+            "years": {
+              "2023": -1952,
+              "2024": -590,
+              "2025": -25
+            }
+          },
+          {
+            "key": "",
+            "label": "Prepaid expenses and other assets",
+            "years": {
+              "2023": -2652,
+              "2024": -3273,
+              "2025": -3181
+            }
+          }
+        ]
+      },
+      "investing_activities": {
+        "capex": {
+          "value": -8527,
+          "years": {
+            "2023": -8899,
+            "2024": -11342,
+            "2025": -8527
+          },
+          "label": "Purchases of property and equipment excluding finance leases, net of sales"
+        },
+        "acquisitions_net": {
+          "value": null,
+          "years": {
+            "2023": -64
+          },
+          "label": "Business combinations, net of cash acquired"
+        },
+        "purchases_securities": {
+          "value": -37109,
+          "years": {
+            "2023": -19112,
+            "2024": -35955,
+            "2025": -37109
+          },
+          "label": "Purchases of investments"
+        },
+        "maturities_securities": {
+          "value": 30158,
+          "years": {
+            "2023": 12353,
+            "2024": 28310,
+            "2025": 30158
+          },
+          "label": "Proceeds from maturities of investments"
+        },
+        "sales_securities": {
+          "value": null,
+          "label": "Proceeds from sales of investments"
+        }
+      },
+      "financing_activities": {
+        "debt_proceeds": {
+          "value": 5586,
+          "years": {
+            "2023": 3931,
+            "2024": 5744,
+            "2025": 5586
+          },
+          "label": "Proceeds from issuances of debt"
+        },
+        "debt_repayments": {
+          "value": -5546,
+          "years": {
+            "2023": -1351,
+            "2024": -2500,
+            "2025": -5546
+          },
+          "label": "Repayments of debt"
+        },
+        "stock_issuance_proceeds": {
+          "value": 1186,
+          "years": {
+            "2024": 1241,
+            "2025": 1186
+          },
+          "label": "Proceeds from exercises of stock options and other stock issuances, net of issuance costs"
+        },
+        "additional_items": [
+          {
+            "key": "",
+            "label": "Principal payments on finance leases",
+            "years": {
+              "2023": -464,
+              "2024": -381,
+              "2025": -104
+            }
+          },
+          {
+            "key": "",
+            "label": "Proceeds received from directors in shareholder settlement"
+          },
+          {
+            "key": "",
+            "label": "Payment of legal fees associated with shareholder settlement",
+            "years": {
+              "2025": -176
+            }
+          },
+          {
+            "key": "",
+            "label": "Debt issuance costs",
+            "years": {
+              "2023": -29,
+              "2024": -14,
+              "2025": -6
+            }
+          },
+          {
+            "key": "",
+            "label": "Distributions paid to noncontrolling interests in subsidiaries",
+            "years": {
+              "2023": -144,
+              "2024": -104,
+              "2025": -78
+            }
+          },
+          {
+            "key": "",
+            "label": "Payments for buy-outs of noncontrolling interests in subsidiaries",
+            "years": {
+              "2023": -54,
+              "2024": -133
+            }
+          }
+        ]
+      },
+      "supplemental_info": {
+        "non_cash_investing": {
+          "value": 1913,
+          "years": {
+            "2023": 2272,
+            "2024": 1410,
+            "2025": 1913
+          },
+          "label": "Acquisitions of property and equipment included in liabilities"
+        }
+      },
+      "cash_summary": {
+        "net_cash_operating": {
+          "value": 14747,
+          "years": {
+            "2023": 13256,
+            "2024": 14923,
+            "2025": 14747
+          },
+          "label": "Net cash provided by operating activities"
+        },
+        "net_cash_investing": {
+          "value": -15478,
+          "years": {
+            "2023": -15584,
+            "2024": -18787,
+            "2025": -15478
+          },
+          "label": "Net cash used in investing activities"
+        },
+        "net_cash_financing": {
+          "value": 1139,
+          "years": {
+            "2023": 2589,
+            "2024": 3853,
+            "2025": 1139
+          },
+          "label": "Net cash provided by financing activities"
+        },
+        "fx_effect": {
+          "value": null,
+          "years": {
+            "2024": -141
+          },
+          "label": "Effect of exchange rate changes on cash and cash equivalents and restricted cash"
+        },
+        "net_change_in_cash": {
+          "value": null,
+          "years": {
+            "2024": -152
+          },
+          "label": "Net increase (decrease) in cash and cash equivalents and restricted cash"
+        },
+        "cash_beginning": {
+          "value": 17037,
+          "years": {
+            "2023": 16924,
+            "2024": 17189,
+            "2025": 17037
+          },
+          "label": "Cash and cash equivalents and restricted cash, beginning of period"
+        },
+        "cash_ending": {
+          "value": 17616,
+          "years": {
+            "2023": 17189,
+            "2024": 17037,
+            "2025": 17616
+          },
+          "label": "Cash and cash equivalents and restricted cash, end of period"
+        }
+      },
+      "_reported_for_validation": {}
+    },
+    "supplemental_data": {
+      "eps_basic": null,
+      "eps_diluted": null,
+      "shares_outstanding_basic": null,
+      "shares_outstanding_diluted": null
+    },
+    "qualitative": {
+      "strategy": {
+        "growth_targets": null,
+        "new_business_initiatives": null,
+        "management_confidence": 0,
+        "risk_assessment": ""
+      },
+      "capital_allocation": {
+        "share_buyback_program": "",
+        "dividend_policy": "",
+        "ma_strategy": ""
+      },
+      "segments": {
+        "segments": null,
+        "geographic_breakdown": null
+      },
+      "risks": {
+        "top_risks": null,
+        "quantitative_summary": "",
+        "legal_proceedings": "",
+        "control_weaknesses": "",
+        "cybersecurity_risk": ""
+      }
+    },
+    "metadata": {
+      "llm_provider": "Parallel Agents",
+      "variables_mapped": 0,
+      "variables_unmapped": 21,
+      "processing_time_ms": 0
+    },
+    "raw_json": {
+      "BALANCE_SHEET": {
+        "fiscal_years": [
+          2025,
+          2024
+        ],
+        "current_assets": {
+          "cash_and_equivalents": {
+            "label": "Cash and cash equivalents",
+            "years": {
+              "2025": 16513,
+              "2024": 16139
+            }
+          },
+          "short_term_investments": {
+            "label": "Short-term investments",
+            "years": {
+              "2025": 27546,
+              "2024": 20424
+            }
+          },
+          "accounts_receivable_net": {
+            "label": "Accounts receivable, net",
+            "years": {
+              "2025": 4576,
+              "2024": 4418
+            }
+          },
+          "inventories": {
+            "label": "Inventory",
+            "years": {
+              "2025": 12392,
+              "2024": 12017
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Prepaid expenses and other current assets",
+              "years": {
+                "2025": 7615,
+                "2024": 5362
+              }
+            }
+          ]
+        },
+        "noncurrent_assets": {
+          "ppe_net": {
+            "label": "Property, plant and equipment, net",
+            "years": {
+              "2025": 40643,
+              "2024": 35836
+            }
+          },
+          "deferred_tax_assets_lt": {
+            "label": "Deferred tax assets",
+            "years": {
+              "2025": 6925,
+              "2024": 6524
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Operating lease vehicles, net",
+              "years": {
+                "2025": 4912,
+                "2024": 5581
+              }
+            },
+            {
+              "label": "Energy generation and storage systems, net",
+              "years": {
+                "2025": 4604,
+                "2024": 4924
+              }
+            },
+            {
+              "label": "Operating lease right-of-use assets",
+              "years": {
+                "2025": 6027,
+                "2024": 5160
+              }
+            },
+            {
+              "label": "Digital assets",
+              "years": {
+                "2025": 1008,
+                "2024": 1076
+              }
+            },
+            {
+              "label": "Other non-current assets",
+              "years": {
+                "2025": 5045,
+                "2024": 4609
+              }
+            }
+          ]
+        },
+        "current_liabilities": {
+          "accounts_payable": {
+            "label": "Accounts payable",
+            "years": {
+              "2025": 13371,
+              "2024": 12474
+            }
+          },
+          "current_maturities_long_term_debt": {
+            "label": "Current portion of debt and finance leases",
+            "years": {
+              "2025": 1640,
+              "2024": 2456
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Accrued liabilities and other",
+              "years": {
+                "2025": 13279,
+                "2024": 10723
+              }
+            },
+            {
+              "label": "Deferred revenue",
+              "years": {
+                "2025": 3424,
+                "2024": 3168
+              }
+            }
+          ]
+        },
+        "noncurrent_liabilities": {
+          "long_term_debt": {
+            "label": "Debt and finance leases, net of current portion",
+            "years": {
+              "2025": 6736,
+              "2024": 5757
+            }
+          },
+          "deferred_tax_liabilities": {
+            "label": "Deferred revenue, net of current portion",
+            "years": {
+              "2025": 3631,
+              "2024": 3317
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Other long-term liabilities",
+              "years": {
+                "2025": 12860,
+                "2024": 10495
+              }
+            }
+          ]
+        },
+        "equity": {
+          "common_stock_apic": {
+            "label": "Additional paid-in capital",
+            "years": {
+              "2025": 42770,
+              "2024": 38371
+            }
+          },
+          "retained_earnings_deficit": {
+            "label": "Retained earnings",
+            "years": {
+              "2025": 39003,
+              "2024": 35209
+            }
+          },
+          "accum_other_comprehensive_income": {
+            "label": "Accumulated other comprehensive income (loss)",
+            "years": {
+              "2025": 0,
+              "2024": -670
+            }
+          }
+        },
+        "_reported_for_validation": {
+          "total_current_assets": {
+            "value": 68642,
+            "years": {
+              "2025": 68642,
+              "2024": 58360
+            }
+          },
+          "total_assets": {
+            "value": 137806,
+            "years": {
+              "2025": 137806,
+              "2024": 122070
+            }
+          },
+          "total_current_liabilities": {
+            "value": 31714,
+            "years": {
+              "2025": 31714,
+              "2024": 28821
+            }
+          },
+          "total_liabilities": {
+            "value": 54941,
+            "years": {
+              "2025": 54941,
+              "2024": 48390
+            }
+          },
+          "total_equity": {
+            "value": 82137,
+            "years": {
+              "2025": 82137,
+              "2024": 72913
+            }
+          }
+        }
+      },
+      "CASH_FLOW": {
+        "fiscal_years": [
+          2025,
+          2024,
+          2023
+        ],
+        "operating_activities": {
+          "net_income_start": {
+            "label": "Net income",
+            "years": {
+              "2025": 3855,
+              "2024": 7153,
+              "2023": 14974
+            }
+          },
+          "depreciation_amortization": {
+            "label": "Depreciation, amortization and impairment",
+            "years": {
+              "2025": 6148,
+              "2024": 5368,
+              "2023": 4667
+            }
+          },
+          "stock_based_compensation": {
+            "label": "Stock-based compensation",
+            "years": {
+              "2025": 2825,
+              "2024": 1999,
+              "2023": 1812
+            }
+          },
+          "deferred_taxes": {
+            "label": "Deferred income taxes",
+            "years": {
+              "2023": -6349
+            }
+          },
+          "change_receivables": {
+            "label": "Accounts receivable",
+            "years": {
+              "2025": -261,
+              "2024": -1083,
+              "2023": -586
+            }
+          },
+          "change_inventory": {
+            "label": "Inventory",
+            "years": {
+              "2025": -630,
+              "2023": -1195
+            }
+          },
+          "change_payables": {
+            "label": "Accounts payable, accrued and other liabilities",
+            "years": {
+              "2025": 4376,
+              "2024": 3588,
+              "2023": 2605
+            }
+          },
+          "change_deferred_revenue": {
+            "label": "Deferred revenue",
+            "years": {
+              "2023": 1532
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Inventory and purchase commitments write-downs",
+              "years": {}
+            },
+            {
+              "label": "Foreign currency transaction net unrealized loss (gain)",
+              "years": {
+                "2024": -73,
+                "2023": -144
+              }
+            },
+            {
+              "label": "Non-cash interest and other operating activities",
+              "years": {}
+            },
+            {
+              "label": "Digital assets loss (gain), net",
+              "years": {
+                "2024": -589
+              }
+            },
+            {
+              "label": "Operating lease vehicles",
+              "years": {
+                "2025": -25,
+                "2024": -590,
+                "2023": -1952
+              }
+            },
+            {
+              "label": "Prepaid expenses and other assets",
+              "years": {
+                "2025": -3181,
+                "2024": -3273,
+                "2023": -2652
+              }
+            }
+          ]
+        },
+        "investing_activities": {
+          "capex": {
+            "label": "Purchases of property and equipment excluding finance leases, net of sales",
+            "years": {
+              "2025": -8527,
+              "2024": -11342,
+              "2023": -8899
+            }
+          },
+          "purchases_securities": {
+            "label": "Purchases of investments",
+            "years": {
+              "2025": -37109,
+              "2024": -35955,
+              "2023": -19112
+            }
+          },
+          "maturities_securities": {
+            "label": "Proceeds from maturities of investments",
+            "years": {
+              "2025": 30158,
+              "2024": 28310,
+              "2023": 12353
+            }
+          },
+          "sales_securities": {
+            "label": "Proceeds from sales of investments",
+            "years": {}
+          },
+          "acquisitions_net": {
+            "label": "Business combinations, net of cash acquired",
+            "years": {
+              "2023": -64
+            }
+          },
+          "additional_items": []
+        },
+        "financing_activities": {
+          "debt_proceeds": {
+            "label": "Proceeds from issuances of debt",
+            "years": {
+              "2025": 5586,
+              "2024": 5744,
+              "2023": 3931
+            }
+          },
+          "debt_repayments": {
+            "label": "Repayments of debt",
+            "years": {
+              "2025": -5546,
+              "2024": -2500,
+              "2023": -1351
+            }
+          },
+          "stock_issuance_proceeds": {
+            "label": "Proceeds from exercises of stock options and other stock issuances, net of issuance costs",
+            "years": {
+              "2025": 1186,
+              "2024": 1241
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Principal payments on finance leases",
+              "years": {
+                "2025": -104,
+                "2024": -381,
+                "2023": -464
+              }
+            },
+            {
+              "label": "Proceeds received from directors in shareholder settlement",
+              "years": {}
+            },
+            {
+              "label": "Payment of legal fees associated with shareholder settlement",
+              "years": {
+                "2025": -176
+              }
+            },
+            {
+              "label": "Debt issuance costs",
+              "years": {
+                "2025": -6,
+                "2024": -14,
+                "2023": -29
+              }
+            },
+            {
+              "label": "Distributions paid to noncontrolling interests in subsidiaries",
+              "years": {
+                "2025": -78,
+                "2024": -104,
+                "2023": -144
+              }
+            },
+            {
+              "label": "Payments for buy-outs of noncontrolling interests in subsidiaries",
+              "years": {
+                "2024": -133,
+                "2023": -54
+              }
+            }
+          ]
+        },
+        "supplemental_info": {
+          "non_cash_investing": {
+            "label": "Acquisitions of property and equipment included in liabilities",
+            "years": {
+              "2025": 1913,
+              "2024": 1410,
+              "2023": 2272
+            }
+          },
+          "additional_items": []
+        },
+        "cash_summary": {
+          "net_cash_operating": {
+            "label": "Net cash provided by operating activities",
+            "years": {
+              "2025": 14747,
+              "2024": 14923,
+              "2023": 13256
+            }
+          },
+          "net_cash_investing": {
+            "label": "Net cash used in investing activities",
+            "years": {
+              "2025": -15478,
+              "2024": -18787,
+              "2023": -15584
+            }
+          },
+          "net_cash_financing": {
+            "label": "Net cash provided by financing activities",
+            "years": {
+              "2025": 1139,
+              "2024": 3853,
+              "2023": 2589
+            }
+          },
+          "fx_effect": {
+            "label": "Effect of exchange rate changes on cash and cash equivalents and restricted cash",
+            "years": {
+              "2024": -141
+            }
+          },
+          "net_change_in_cash": {
+            "label": "Net increase (decrease) in cash and cash equivalents and restricted cash",
+            "years": {
+              "2024": -152
+            }
+          },
+          "cash_beginning": {
+            "label": "Cash and cash equivalents and restricted cash, beginning of period",
+            "years": {
+              "2025": 17037,
+              "2024": 17189,
+              "2023": 16924
+            }
+          },
+          "cash_ending": {
+            "label": "Cash and cash equivalents and restricted cash, end of period",
+            "years": {
+              "2025": 17616,
+              "2024": 17037,
+              "2023": 17189
+            }
+          }
+        }
+      },
+      "INCOME_STATEMENT": {
+        "fiscal_years": [
+          2025,
+          2024,
+          2023
+        ],
+        "gross_profit_section": {
+          "revenues": {
+            "label": "Total revenues",
+            "years": {
+              "2025": 94827,
+              "2024": 97690,
+              "2023": 96773
+            }
+          },
+          "cost_of_goods_sold": {
+            "label": "Total cost of revenues",
+            "years": {
+              "2025": 77733,
+              "2024": 80240,
+              "2023": 79113
+            }
+          },
+          "gross_profit": {
+            "label": "Gross profit",
+            "years": {
+              "2025": 17094,
+              "2024": 17450,
+              "2023": 17660
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Automotive sales",
+              "years": {
+                "2025": 65821,
+                "2024": 72480,
+                "2023": 78509
+              }
+            },
+            {
+              "label": "Automotive regulatory credits",
+              "years": {
+                "2025": 1993,
+                "2024": 2763,
+                "2023": 1790
+              }
+            },
+            {
+              "label": "Automotive leasing",
+              "years": {
+                "2025": 1712,
+                "2024": 1827,
+                "2023": 2120
+              }
+            },
+            {
+              "label": "Total automotive revenues",
+              "years": {
+                "2025": 69526,
+                "2024": 77070,
+                "2023": 82419
+              }
+            },
+            {
+              "label": "Energy generation and storage",
+              "years": {
+                "2025": 12771,
+                "2024": 10086,
+                "2023": 6035
+              }
+            },
+            {
+              "label": "Services and other",
+              "years": {
+                "2025": 12530,
+                "2024": 10534,
+                "2023": 8319
+              }
+            },
+            {
+              "label": "Automotive sales",
+              "years": {
+                "2025": 56267,
+                "2024": 61870,
+                "2023": 65121
+              }
+            },
+            {
+              "label": "Automotive leasing",
+              "years": {
+                "2024": 1003,
+                "2023": 1268
+              }
+            },
+            {
+              "label": "Total automotive cost of revenues",
+              "years": {
+                "2025": 57165,
+                "2024": 62873,
+                "2023": 66389
+              }
+            },
+            {
+              "label": "Energy generation and storage",
+              "years": {
+                "2025": 8969,
+                "2024": 7446,
+                "2023": 4894
+              }
+            },
+            {
+              "label": "Services and other",
+              "years": {
+                "2025": 11599,
+                "2024": 9921,
+                "2023": 7830
+              }
+            }
+          ]
+        },
+        "operating_cost_section": {
+          "rd_expenses": {
+            "label": "Research and development",
+            "years": {
+              "2025": 6411,
+              "2024": 4540,
+              "2023": 3969
+            }
+          },
+          "sga_expenses": {
+            "label": "Selling, general and administrative",
+            "years": {
+              "2025": 5834,
+              "2024": 5150,
+              "2023": 4800
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Restructuring and other",
+              "years": {
+                "2023": 0
+              }
+            },
+            {
+              "label": "Total operating expenses",
+              "years": {
+                "2025": 12739,
+                "2024": 10374,
+                "2023": 8769
+              }
+            }
+          ]
+        },
+        "non_operating_section": {
+          "interest_expense": {
+            "label": "Interest expense",
+            "years": {
+              "2025": -338,
+              "2024": -350,
+              "2023": -156
+            }
+          },
+          "other_income_expense": {
+            "label": "Other (expense) income, net",
+            "years": {
+              "2025": -419
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Interest income",
+              "years": {
+                "2025": 1680,
+                "2024": 1569,
+                "2023": 1066
+              }
+            }
+          ]
+        },
+        "tax_adjustments_section": {
+          "income_tax_expense": {
+            "label": "Provision for (benefit from) income taxes",
+            "years": {
+              "2025": 1423,
+              "2024": 1837,
+              "2023": -5001
+            }
+          }
+        },
+        "net_income_section": {
+          "net_income_to_common": {
+            "label": "Net income attributable to common stockholders",
+            "years": {
+              "2025": 3794,
+              "2024": 7091,
+              "2023": 14997
+            }
+          },
+          "net_income_to_nci": {
+            "label": "Net income (loss) attributable to noncontrolling interests and redeemable noncontrolling interests in subsidiaries",
+            "years": {
+              "2023": -23
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Net income",
+              "years": {
+                "2025": 3855,
+                "2024": 7153,
+                "2023": 14974
+              }
+            }
+          ]
+        },
+        "oci_section": {
+          "oci_total": {
+            "label": "Total other comprehensive income (loss):",
+            "years": {
+              "2025": 1031,
+              "2024": -527
+            }
+          },
+          "oci_foreign_currency": {
+            "label": "Foreign currency translation adjustment",
+            "years": {
+              "2025": 1038,
+              "2024": -539
+            }
+          },
+          "oci_securities": {
+            "label": "Unrealized net (loss) gain on investments, net of tax",
+            "years": {
+              "2025": -7
+            }
+          },
+          "additional_items": [
+            {
+              "label": "Net loss realized and included in net income",
+              "years": {
+                "2025": 0,
+                "2024": 0
+              }
+            },
+            {
+              "label": "Comprehensive income",
+              "years": {
+                "2025": 4886,
+                "2024": 6626,
+                "2023": 15192
+              }
+            },
+            {
+              "label": "Comprehensive income (loss) attributable to noncontrolling interests and redeemable noncontrolling interests in subsidiaries",
+              "years": {
+                "2023": -23
+              }
+            },
+            {
+              "label": "Comprehensive income attributable to common stockholders",
+              "years": {
+                "2025": 4825,
+                "2024": 6564,
+                "2023": 15215
+              }
+            }
+          ]
+        },
+        "nonrecurring_section": {
+          "additional_items": []
+        },
+        "_reported_for_validation": {
+          "total_revenues": {
+            "value": 94827
+          },
+          "gross_profit": {
+            "value": 17094
+          },
+          "operating_income": {
+            "value": 4355
+          },
+          "income_before_tax": {
+            "value": 5278
+          },
+          "net_income": {
+            "value": 3855
+          }
+        }
+      }
+    }
+  }
+}

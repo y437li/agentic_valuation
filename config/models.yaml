@@ -1,0 +1,50 @@
+# Global configuration for cost control
+active_provider: qwen
+
+agents:
+  the_accountant:
+    description: "Handles data ingestion, mapping, and identity checks."
+  the_analyst:
+    description: "Handles complex reasoning, valuations, and sensitivity analysis."
+  the_communicator:
+    description: "Handles user interaction and conversational explanations."
+  
+  # Debate Agents
+  macro:
+    provider: gemini
+    description: "Macroeconomic analysis with Google Search."
+  sentiment:
+    provider: gemini
+    description: "Market sentiment analysis with Google Search."
+  fundamentals:
+    provider: gemini
+    description: "Fundamental and segment analysis with Google Search."
+  skeptic:
+    description: "Debate skeptic (uses active provider)."
+  optimist:
+    description: "Debate optimist (uses active provider)."
+  synthesizer:
+    description: "Debate synthesizer (uses active provider)."
+
+providers:
+  openai:
+    model: gpt-4
+    api_key: "${OPENAI_API_KEY}"
+  anthropic:
+    model: claude-3-opus
+    api_key: "${ANTHROPIC_API_KEY}"
+  gemini:
+    model: gemini-pro
+    api_key: "${GOOGLE_API_KEY}"
+  deepseek:
+    model: deepseek-chat
+    api_key: "${DEEPSEEK_API_KEY}"
+  qwen:
+    model: qwen-max
+    api_key: "${QWEN_API_KEY}"
+  kimi:
+    model: moonshot-v1-8k
+    api_key: "${KIMI_API_KEY}"
+  doubao:
+    model: doubao-pro-32k
+    api_key: "${DOUBAO_API_KEY}"

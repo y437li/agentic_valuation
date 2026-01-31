@@ -1,0 +1,7 @@
+﻿# .gitignore for agentic_valuation
+web-ui/
+.cache/
+*.log
+logs/
+.env
+node_modules/

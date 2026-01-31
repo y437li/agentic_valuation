@@ -1,0 +1,19 @@
+{
+    "id": "extraction.table_mapper.income_statement",
+    "name": "Income Statement Table Mapper",
+    "category": "extraction",
+    "description": "Maps Income Statement line items to FSAP variables. Returns row indices and mappings, NOT values.",
+    "version": "2.1.0",
+    "architecture": "LLM_NAVIGATOR_GO_EXTRACTOR",
+    "system_prompt": "You are a Financial Data Analyst. Your job is to MAP line items in a financial table to standard FSAP variables.\n\nIMPORTANT RULES:\n1. You are NOT extracting values. You are only MAPPING rows to variable names.\n2. SKIP header rows - rows where the first column is empty or contains only dates.\n3. Only map rows that have a TEXT LABEL in the first column (e.g., \"Net sales\", \"Cost of sales\").\n4. row_index is 0-based, starting from the FIRST DATA ROW with a text label.\n5. For year_columns, extract the YEAR from date headers (e.g., \"Sep. 28, 2024\" -> year: 2024).",
+    "user_prompt_template": "Map line items in this INCOME STATEMENT table to FSAP variables.\n\nTABLE:\n{{.TableMarkdown}}\n\nIMPORTANT: Tables may have multi-row headers. For example:\n| Title | 12 Months Ended |   |   |\n| --- | --- | --- | --- |\n|   | Sep. 28, 2024 | Sep. 30, 2023 | Sep. 24, 2022 |  <- This is a SUB-HEADER row, SKIP IT\n| Net sales | 391035 | 383285 | 394328 |               <- This is the FIRST DATA ROW (row_index: 0)\n\nExtract years from dates: \"Sep. 28, 2024\" -> year: 2024\n\nFSAP VARIABLES TO MAP:\n\n=== GROSS PROFIT SECTION (parent_section: \"gross_profit_section\") ===\n- revenues: Total revenues, net sales, net revenue\n- cost_of_goods_sold: Cost of goods sold, cost of sales, cost of revenue\n- gross_profit: [SUBTOTAL] Gross profit, gross margin\n\n=== OPERATING EXPENSES SECTION (parent_section: \"operating_cost_section\") ===\n- sga_expenses: Selling, general and administrative\n- rd_expenses: Research and development\n- operating_income: [SUBTOTAL] Operating income, income from operations\n\n=== NON-OPERATING SECTION (parent_section: \"non_operating_section\") ===\n- other_income_expense: Other income/expense, non-operating income/expense\n- income_before_tax: [SUBTOTAL] Income before income taxes\n\n=== TAX & NET INCOME SECTION (parent_section: \"net_income_section\") ===\n- income_tax_expense: Income tax expense, provision for income taxes\n- net_income: [TOTAL] Net income, net earnings\n\n=== EPS SECTION (parent_section: \"eps_section\") ===\n- eps_basic: Basic earnings per share\n- eps_diluted: Diluted earnings per share\n- shares_basic: Basic shares outstanding\n- shares_diluted: Diluted shares outstanding\n\nFor items NOT matching standard fields, use fsap_variable: \"UNIQUE\".\n\nOutput JSON:\n{\n  \"table_type\": \"income_statement\",\n  \"year_columns\": [{\"year\": 2024, \"column_index\": 1}, {\"year\": 2023, \"column_index\": 2}, {\"year\": 2022, \"column_index\": 3}],\n  \"row_mappings\": [\n    {\n      \"row_index\": 0,\n      \"row_label\": \"Net sales\",\n      \"fsap_variable\": \"revenues\",\n      \"item_type\": \"ITEM\",\n      \"parent_section\": \"gross_profit_section\",\n      \"confidence\": 1.0\n    }\n  ]\n}",
+    "response_schema_ref": "line_item_mapping",
+    "variables": [
+        {
+            "name": "TableMarkdown",
+            "type": "string",
+            "description": "Markdown table content to map",
+            "required": true
+        }
+    ]
+}

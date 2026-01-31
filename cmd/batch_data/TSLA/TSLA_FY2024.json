@@ -1,0 +1,96 @@
+{
+  "id": "0001104659-25-042659",
+  "cik": "0001318605",
+  "ticker": "TSLA",
+  "company_name": "Tesla, Inc.",
+  "fiscal_year": 2024,
+  "fiscal_period": "FY",
+  "form_type": "10-K/A",
+  "accession_number": "0001104659-25-042659",
+  "data": {
+    "company": "Tesla, Inc.",
+    "cik": "0001318605",
+    "fiscal_year": 2024,
+    "fiscal_years": null,
+    "fiscal_period": "FY",
+    "is_amended": false,
+    "source_document": "10-K/A",
+    "filing_url": "https://www.sec.gov/Archives/edgar/data/0001318605/000110465925042659/tm252787d2_10ka.htm",
+    "balance_sheet": {
+      "current_assets": {
+        "cash_and_equivalents": null,
+        "short_term_investments": null,
+        "accounts_receivable_net": null,
+        "inventories": null
+      },
+      "noncurrent_assets": {
+        "long_term_investments": null,
+        "ppe_at_cost": null,
+        "accumulated_depreciation": null,
+        "intangibles": null,
+        "goodwill": null,
+        "deferred_tax_assets_lt": null
+      },
+      "current_liabilities": {
+        "accounts_payable": null,
+        "accrued_liabilities": null,
+        "notes_payable_short_term_debt": null,
+        "current_maturities_long_term_debt": null
+      },
+      "noncurrent_liabilities": {
+        "long_term_debt": null,
+        "deferred_tax_liabilities": null
+      },
+      "equity": {
+        "common_stock_apic": null,
+        "retained_earnings_deficit": null,
+        "treasury_stock": null,
+        "accum_other_comprehensive_income": null,
+        "noncontrolling_interests": null
+      },
+      "_reported_for_validation": {}
+    },
+    "income_statement": {
+      "_reported_for_validation": {}
+    },
+    "cash_flow_statement": {
+      "_reported_for_validation": {}
+    },
+    "supplemental_data": {
+      "eps_basic": null,
+      "eps_diluted": null,
+      "shares_outstanding_basic": null,
+      "shares_outstanding_diluted": null
+    },
+    "qualitative": {
+      "strategy": {
+        "growth_targets": null,
+        "new_business_initiatives": null,
+        "management_confidence": 0,
+        "risk_assessment": ""
+      },
+      "capital_allocation": {
+        "share_buyback_program": "",
+        "dividend_policy": "",
+        "ma_strategy": ""
+      },
+      "segments": {
+        "segments": null,
+        "geographic_breakdown": null
+      },
+      "risks": {
+        "top_risks": null,
+        "quantitative_summary": "",
+        "legal_proceedings": "",
+        "control_weaknesses": "",
+        "cybersecurity_risk": ""
+      }
+    },
+    "metadata": {
+      "llm_provider": "Parallel Agents",
+      "variables_mapped": 0,
+      "variables_unmapped": 9,
+      "processing_time_ms": 0
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+    "id": "extraction.toc_analysis",
+    "name": "TOC Analysis",
+    "category": "extraction",
+    "description": "Uses LLM to identify financial statement sections in Table of Contents",
+    "version": "1.0.0",
+    "system_prompt": "You are a Senior Financial Analyst. Your job is to identify the specific sections in a 10-K filing that are required to perform specific analysis tasks. Do not rely solely on standard Item numbers (like \"Item 1A\"), as they may vary. Look for the content description.",
+    "user_prompt_template": "Given the Table of Contents (below), identify the start page and title for the sections needed for these 4 Analysis Tasks:\n\nTASK 1: Structural Risk Analysis\n- Need: The primary section listing risk factors and uncertainties.\n- Target: Often \"Item 1A. Risk Factors\", but could be \"Principal Risks\".\n\nTASK 2: Quantitative Market Risk (Hidden Risks)\n- Need: Interest rate sensitivity, FX exposure.\n- Target: \"Item 7A. Quantitative and Qualitative Disclosures about Market Risk\".\n\nTASK 3: Legal & Regulatory Risks\n- Need: Material pending litigation.\n- Target: \"Item 3. Legal Proceedings\".\n\nTASK 4: Internal Control Risks\n- Need: Weaknesses in financial reporting controls.\n- Target: \"Item 9A. Controls and Procedures\".\n\nTASK 5: Strategic Analysis & Management Sentiment\n- Need: Management's narrative on performance, outlook, and liquidity.\n- Target: \"Item 7. Management's Discussion and Analysis\" (MD&A).\n\nTASK 6: Business & Segment Modeling\n- Need: Description of business operations and reporting segments.\n- Target: \"Item 1. Business\".\n\nTASK 7: Financial Statement Extraction\n- Need: Balance Sheet, Income Statement, Cash Flows, and Notes.\n- Target: \"Item 8. Financial Statements\".\n\nFor each mapped section, extract the exact Title, Page Number, and Anchor Link (if available).\n\nTOC:\n{{.TOCContent}}\n\nReturn JSON (map task to section):\n{\n  \"business\": { \"title\": \"...\", \"page\": ... },\n  \"risk_factors\": { \"title\": \"...\", \"page\": ... },\n  \"market_risk\": { \"title\": \"...\", \"page\": ... },\n  \"legal_proceedings\": { \"title\": \"...\", \"page\": ... },\n  \"controls\": { \"title\": \"...\", \"page\": ... },\n  \"mda\": { \"title\": \"...\", \"page\": ... },\n  \"balance_sheet\": { \"title\": \"...\", \"page\": ... },\n  \"income_statement\": { \"title\": \"...\", \"page\": ... },\n  \"cash_flow\": { \"title\": \"...\", \"page\": ... },\n  \"notes\": { \"title\": \"...\", \"page\": ... }\n}",
+    "response_schema_ref": "toc_response",
+    "variables": [
+        {
+            "name": "TOCContent",
+            "type": "string",
+            "description": "Table of Contents markdown",
+            "required": true
+        }
+    ]
+}
