@@ -77,15 +77,15 @@ func TestCalculateCommonSize_ExpandedDrivers(t *testing.T) {
 	}
 
 	// Verify Dynamic Items
-	// Note: Keys follow the implementation naming convention
-	assetKey := "Legal Asset (BS-Asset)"
+	// Note: Keys follow the implementation naming convention with section prefixes
+	assetKey := "BS-CA: Legal Asset"
 	if val, ok := defaults.CustomItems[assetKey]; !ok {
 		t.Errorf("Missing dynamic asset key: %s", assetKey)
 	} else if math.Abs(val-0.02) > 0.0001 {
 		t.Errorf("Dynamic Asset expected 0.02, got %f", val)
 	}
 
-	liabKey := "Legal Liability (BS-Liab)"
+	liabKey := "BS-CL: Legal Liability"
 	if val, ok := defaults.CustomItems[liabKey]; !ok {
 		t.Errorf("Missing dynamic liability key: %s", liabKey)
 	} else if math.Abs(val-0.015) > 0.0001 {

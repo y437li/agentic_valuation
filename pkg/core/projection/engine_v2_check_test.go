@@ -79,7 +79,7 @@ func TestProjectionEngine_V2_Compliance(t *testing.T) {
 	engine := NewProjectionEngine(skeleton)
 
 	// 3. Run Projection
-	proj := engine.ProjectYear(prevIS, prevBS, assume, 2025)
+	proj := engine.ProjectYear(prevIS, prevBS, nil, assume, 2025)
 
 	// 4. Validate Results
 

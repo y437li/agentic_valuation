@@ -79,7 +79,7 @@ func TestProjectYear_Balancing(t *testing.T) {
 	}
 
 	engine := NewProjectionEngine(nil)
-	proj := engine.ProjectYear(prevIS, prevBS, assumptions, 2025)
+	proj := engine.ProjectYear(prevIS, prevBS, nil, assumptions, 2025)
 
 	// Check IS
 	// Rev = 1100

@@ -163,6 +163,19 @@ func CalculateCommonSizeDefaults(histData *edgar.YearData) CommonSizeDefaults {
 
 			defaults.CustomItems = make(map[string]float64)
 
+			// =================================================================
+			// INCOME STATEMENT DRIVERS
+			// =================================================================
+
+			// Gross Profit Section - AdditionalItems
+			if is.GrossProfitSection != nil {
+				for _, item := range is.GrossProfitSection.AdditionalItems {
+					if item.Value != nil && item.Value.Value != nil {
+						defaults.CustomItems["IS-GrossProfit: "+item.Label] = *item.Value.Value / rev
+					}
+				}
+			}
+
 			// Other Operating Expenses %
 			if is.OperatingCostSection != nil {
 				if is.OperatingCostSection.OtherOperatingExpenses != nil && is.OperatingCostSection.OtherOperatingExpenses.Value != nil {
@@ -171,7 +184,7 @@ func CalculateCommonSizeDefaults(histData *edgar.YearData) CommonSizeDefaults {
 				// Dynamic Operating Items
 				for _, item := range is.OperatingCostSection.AdditionalItems {
 					if item.Value != nil && item.Value.Value != nil {
-						defaults.CustomItems[item.Label] = *item.Value.Value / rev
+						defaults.CustomItems["IS-OpCost: "+item.Label] = *item.Value.Value / rev
 					}
 				}
 			}
@@ -187,17 +200,58 @@ func CalculateCommonSizeDefaults(histData *edgar.YearData) CommonSizeDefaults {
 				// Dynamic Non-Operating Items
 				for _, item := range is.NonOperatingSection.AdditionalItems {
 					if item.Value != nil && item.Value.Value != nil {
-						defaults.CustomItems[item.Label] = *item.Value.Value / rev
+						defaults.CustomItems["IS-NonOp: "+item.Label] = *item.Value.Value / rev
 					}
 				}
 			}
 
-			// Discontinued Operations (TaxAdjustments section)
-			if is.TaxAdjustments != nil && is.TaxAdjustments.DiscontinuedOperations != nil && is.TaxAdjustments.DiscontinuedOperations.Value != nil {
-				defaults.DiscontinuedOpsPercent = *is.TaxAdjustments.DiscontinuedOperations.Value / rev
+			// Tax Adjustments Section
+			if is.TaxAdjustments != nil {
+				if is.TaxAdjustments.DiscontinuedOperations != nil && is.TaxAdjustments.DiscontinuedOperations.Value != nil {
+					defaults.DiscontinuedOpsPercent = *is.TaxAdjustments.DiscontinuedOperations.Value / rev
+				}
+				for _, item := range is.TaxAdjustments.AdditionalItems {
+					if item.Value != nil && item.Value.Value != nil {
+						defaults.CustomItems["IS-Tax: "+item.Label] = *item.Value.Value / rev
+					}
+				}
 			}
 
-			// --- BALANCE SHEET DRIVERS (% of Revenue) ---
+			// =================================================================
+			// CASH FLOW DRIVERS
+			// =================================================================
+
+			// CF Operating Activities - AdditionalItems
+			if cf.OperatingActivities != nil {
+				for _, item := range cf.OperatingActivities.AdditionalItems {
+					if item.Value != nil && item.Value.Value != nil {
+						defaults.CustomItems["CF-Op: "+item.Label] = *item.Value.Value / rev
+					}
+				}
+			}
+
+			// CF Investing Activities - AdditionalItems
+			if cf.InvestingActivities != nil {
+				for _, item := range cf.InvestingActivities.AdditionalItems {
+					if item.Value != nil && item.Value.Value != nil {
+						defaults.CustomItems["CF-Inv: "+item.Label] = *item.Value.Value / rev
+					}
+				}
+			}
+
+			// CF Financing Activities - AdditionalItems
+			if cf.FinancingActivities != nil {
+				for _, item := range cf.FinancingActivities.AdditionalItems {
+					if item.Value != nil && item.Value.Value != nil {
+						defaults.CustomItems["CF-Fin: "+item.Label] = *item.Value.Value / rev
+					}
+				}
+			}
+
+			// =================================================================
+			// BALANCE SHEET DRIVERS (% of Revenue)
+			// =================================================================
+
 			// Receivables (Net)
 			if bs.CurrentAssets.AccountsReceivableNet != nil && bs.CurrentAssets.AccountsReceivableNet.Value != nil {
 				defaults.ReceivablesPercent = *bs.CurrentAssets.AccountsReceivableNet.Value / rev
@@ -215,17 +269,38 @@ func CalculateCommonSizeDefaults(histData *edgar.YearData) CommonSizeDefaults {
 				defaults.DeferredRevPercent = *bs.CurrentLiabilities.DeferredRevenueCurrent.Value / rev
 			}
 
-			// Dynamic Balance Sheet Items (Assets - AdditionalItems is []FSAPValue)
+			// --- Current Assets AdditionalItems ---
 			for _, item := range bs.CurrentAssets.AdditionalItems {
 				if item.Value != nil {
-					defaults.CustomItems[item.Label+" (BS-Asset)"] = *item.Value / rev
+					defaults.CustomItems["BS-CA: "+item.Label] = *item.Value / rev
 				}
 			}
 
-			// Dynamic Balance Sheet Items (Liabilities - AdditionalItems is []FSAPValue)
+			// --- Noncurrent Assets AdditionalItems ---
+			for _, item := range bs.NoncurrentAssets.AdditionalItems {
+				if item.Value != nil {
+					defaults.CustomItems["BS-NCA: "+item.Label] = *item.Value / rev
+				}
+			}
+
+			// --- Current Liabilities AdditionalItems ---
 			for _, item := range bs.CurrentLiabilities.AdditionalItems {
 				if item.Value != nil {
-					defaults.CustomItems[item.Label+" (BS-Liab)"] = *item.Value / rev
+					defaults.CustomItems["BS-CL: "+item.Label] = *item.Value / rev
+				}
+			}
+
+			// --- Noncurrent Liabilities AdditionalItems ---
+			for _, item := range bs.NoncurrentLiabilities.AdditionalItems {
+				if item.Value != nil {
+					defaults.CustomItems["BS-NCL: "+item.Label] = *item.Value / rev
+				}
+			}
+
+			// --- Equity AdditionalItems ---
+			for _, item := range bs.Equity.AdditionalItems {
+				if item.Value != nil {
+					defaults.CustomItems["BS-Eq: "+item.Label] = *item.Value / rev
 				}
 			}
 

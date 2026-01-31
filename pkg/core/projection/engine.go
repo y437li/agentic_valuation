@@ -238,6 +238,47 @@ func (e *ProjectionEngine) ProjectYear(
 		},
 	}
 
+	// -------------------------------------------------------------------------
+	// Dynamic Item Projection (NodeDrivers)
+	// -------------------------------------------------------------------------
+	// Project AdditionalItems using NodeDrivers map (% of Revenue).
+	// Prefix convention: IS-GrossProfit, IS-OpCost, IS-NonOp, IS-Tax, CF-Op, CF-Inv, CF-Fin, BS-CA, BS-NCA, BS-CL, BS-NCL, BS-Eq
+	if assumptions.NodeDrivers != nil {
+		for key, pct := range assumptions.NodeDrivers {
+			projValue := projRev * pct
+			projValuePtr := new(float64)
+			*projValuePtr = projValue
+
+			switch {
+			// === Income Statement ===
+			case len(key) > 15 && key[:15] == "IS-GrossProfit:":
+				label := key[16:] // Skip "IS-GrossProfit: "
+				projIS.GrossProfitSection.AdditionalItems = append(
+					projIS.GrossProfitSection.AdditionalItems,
+					edgar.AdditionalItem{Label: label, Value: &edgar.FSAPValue{Value: projValuePtr}},
+				)
+			case len(key) > 10 && key[:10] == "IS-OpCost:":
+				label := key[11:]
+				projIS.OperatingCostSection.AdditionalItems = append(
+					projIS.OperatingCostSection.AdditionalItems,
+					edgar.AdditionalItem{Label: label, Value: &edgar.FSAPValue{Value: projValuePtr}},
+				)
+			case len(key) > 9 && key[:9] == "IS-NonOp:":
+				label := key[10:]
+				projIS.NonOperatingSection.AdditionalItems = append(
+					projIS.NonOperatingSection.AdditionalItems,
+					edgar.AdditionalItem{Label: label, Value: &edgar.FSAPValue{Value: projValuePtr}},
+				)
+			case len(key) > 7 && key[:7] == "IS-Tax:":
+				label := key[8:]
+				projIS.TaxAdjustments.AdditionalItems = append(
+					projIS.TaxAdjustments.AdditionalItems,
+					edgar.AdditionalItem{Label: label, Value: &edgar.FSAPValue{Value: projValuePtr}},
+				)
+			}
+		}
+	}
+
 	// 2. Balance Sheet Drivers & Rollforward
 	// -------------------------------------------------------------------------
 	// 2. Balance Sheet Drivers & Rollforward
@@ -437,6 +478,52 @@ func (e *ProjectionEngine) ProjectYear(
 	}
 
 	calc.CalculateBalanceSheetTotals(projBS)
+
+	// -------------------------------------------------------------------------
+	// Dynamic Item Projection (NodeDrivers) for Balance Sheet and Cash Flow
+	// -------------------------------------------------------------------------
+	// Note: BS AdditionalItems use []FSAPValue, not []AdditionalItem
+	if assumptions.NodeDrivers != nil {
+		for key, pct := range assumptions.NodeDrivers {
+			projValue := projRev * pct
+			projValuePtr := new(float64)
+			*projValuePtr = projValue
+
+			switch {
+			// === Balance Sheet ===
+			case len(key) > 6 && key[:6] == "BS-CA:":
+				label := key[7:]
+				projBS.CurrentAssets.AdditionalItems = append(
+					projBS.CurrentAssets.AdditionalItems,
+					edgar.FSAPValue{Label: label, Value: projValuePtr},
+				)
+			case len(key) > 7 && key[:7] == "BS-NCA:":
+				label := key[8:]
+				projBS.NoncurrentAssets.AdditionalItems = append(
+					projBS.NoncurrentAssets.AdditionalItems,
+					edgar.FSAPValue{Label: label, Value: projValuePtr},
+				)
+			case len(key) > 6 && key[:6] == "BS-CL:":
+				label := key[7:]
+				projBS.CurrentLiabilities.AdditionalItems = append(
+					projBS.CurrentLiabilities.AdditionalItems,
+					edgar.FSAPValue{Label: label, Value: projValuePtr},
+				)
+			case len(key) > 7 && key[:7] == "BS-NCL:":
+				label := key[8:]
+				projBS.NoncurrentLiabilities.AdditionalItems = append(
+					projBS.NoncurrentLiabilities.AdditionalItems,
+					edgar.FSAPValue{Label: label, Value: projValuePtr},
+				)
+			case len(key) > 6 && key[:6] == "BS-Eq:":
+				label := key[7:]
+				projBS.Equity.AdditionalItems = append(
+					projBS.Equity.AdditionalItems,
+					edgar.FSAPValue{Label: label, Value: projValuePtr},
+				)
+			}
+		}
+	}
 
 	// 5. Reconcile Cash Flow
 	// prevCash already fetched
