@@ -5,3 +5,5 @@ web-ui/
 logs/
 .env
 node_modules/
+pkg/core/edgar/testdata/cache/*.html
+pkg/core/edgar/testdata/cache/*.md
