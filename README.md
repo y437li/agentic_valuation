@@ -7,6 +7,8 @@
 
 ## Quick Start
 
+For a detailed walkthrough, see the **[User Guide](docs/USER_GUIDE.md)**.
+
 1.  **Set Environment Variables**:
     Create a `.env` file at the project root:
     ```env
@@ -42,12 +44,12 @@ New to the project? Start here.
 - **[Database Schema](.agent/resources/SCHEMA_DESIGN.md)**: The "Hybrid Vault" architecture (Postgres + JSONB + Vector).
 
 ### 2. Workflows & Standards
-- **[Standard Workflows](docs/WORKFLOWS.md)**: How to implement features, update docs, and run tests.
+- **[Standard Workflows](.agent/workflows/implementation_workflow.md)**: How to implement features, update docs, and run tests.
 - **Requirements Log**: `docs/REQUIREMENT_LOG.md` (Active requirements).
 - **Decision Log**: `docs/DECISION_LOG.md` (Immutable architecture decisions).
 
 ### 3. Key Systems
-- **[FSAP Engine](docs/FSAP_DOCUMENTATION.md)**: The Financial Statement Analysis Platform core.
+- **[FSAP Engine](docs/FSAP_Data_Extraction_Architecture.md)**: The Financial Statement Analysis Platform core.
 - **[Multi-Agent Debate](docs/MULTI_AGENT_DEBATE_SYSTEM.md)**: The 5-agent assumption generation protocol.
 - **[Prompt Library](resources/prompts/)**: Centralized prompt management with JSON-based templates.
 

@@ -535,6 +535,21 @@ func float64Ptr(v float64) *float64 {
 	return &v
 }
 
+// findProjectRoot attempts to find the project root by looking for go.mod
+func findProjectRoot(startDir string) string {
+	dir := startDir
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return startDir // Hit root, just return start
+		}
+		dir = parent
+	}
+}
+
 // Helper to get markdown locally or fetch (Simplified version of integration_all_companies_test)
 func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) {
 	// 1. Try Cache in pkg/core/edgar/testdata/cache (Relative path adjustment needed)
@@ -544,10 +559,14 @@ func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) 
 	// 2. Decode HTML -> Markdown
 
 	// Assuming standard layout:
-	// c:\Users\y437l\OneDrive\Rotman\agentic_valuation\pkg\core\edgar\testdata\cache
+	// Relative path to cache directory
 	// We can reconstruct it from the known structure.
 
-	baseDir := "c:\\Users\\y437l\\OneDrive\\Rotman\\agentic_valuation\\pkg\\core\\edgar\\testdata\\cache"
+	// Determine absolute path to project root based on current working directory
+	// Assuming test is run from project root or a subdirectory
+	wd, _ := os.Getwd()
+	projectRoot := findProjectRoot(wd)
+	baseDir := filepath.Join(projectRoot, "pkg", "core", "edgar", "testdata", "cache")
 
 	if company.CacheFile == "" {
 		// Use a simple safe name generator matching the other test
@@ -565,9 +584,8 @@ func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) 
 	// 2. Decode HTML -> Markdown
 	data, err := os.ReadFile(cachePath)
 	if err != nil {
-		// If running from project root
-		wd, _ := os.Getwd()
-		return "", fmt.Errorf("cache file not found at %s (pwd: %s). Ensure you have run integration_all_companies_test.go first to populate cache.", cachePath, wd)
+		t.Skipf("Cache file not found for %s at %s, skipping.", company.Name, cachePath)
+		return "", nil
 	}
 
 	t.Logf("📁 Loaded from cache: %s", company.CacheFile)
@@ -576,7 +594,8 @@ func fetchOrLoadMarkdown(t *testing.T, company CompanyTestCase) (string, error) 
 	// Use PandocAdapter to convert
 	converter := edgar.NewPandocAdapter()
 	if !converter.IsAvailable() {
-		return "", fmt.Errorf("pandoc not found in PATH")
+		t.Skipf("Pandoc not found in PATH, skipping %s", company.Name)
+		return "", nil
 	}
 
 	markdown, err := converter.HTMLToMarkdown(htmlContent)

@@ -147,7 +147,8 @@ type FSAPTimeSeries struct {
 
 // AnalysisResult represents a single analyzed line item
 type AnalysisResult struct {
-	Value float64 `json:"value"`
+	Value     float64 `json:"value"`
+	GrowthYoY float64 `json:"growth_yoy"`
 	// Add other fields as needed for analysis context
 }
 
@@ -156,4 +157,5 @@ type CommonSizeAnalysis struct {
 	IncomeStatement map[string]*AnalysisResult `json:"income_statement"`
 	BalanceSheet    map[string]*AnalysisResult `json:"balance_sheet"`
 	CashFlow        map[string]*AnalysisResult `json:"cash_flow"`
+	Margins         Level2Return               `json:"margins"`
 }
