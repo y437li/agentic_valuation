@@ -18,6 +18,19 @@ func (m *MockAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 	// Simulate LLM latency
 	time.Sleep(m.delay)
 
+	// TOC Response (Check first to avoid partial matches with other prompts)
+	if strings.Contains(userPrompt, "Analysis Tasks") {
+		// Always return valid TOC even if shouldFail is true, to ensure Stage 1 succeeds.
+		// The test checks resilience to qualitative agent failures (Stage 2), not navigation failure.
+		return `{
+			"business": {"title": "Business", "anchor": "item1"},
+			"mda": {"title": "Management Discussion", "anchor": "item7"},
+			"balance_sheet": {"title": "Consolidated Balance Sheets", "anchor": "bs"},
+			"notes": {"title": "Notes", "anchor": "notes"},
+			"risk_factors": {"title": "Risk Factors", "anchor": "item1a"}
+		}`, nil
+	}
+
 	if m.shouldFail {
 		return "", fmt.Errorf("mock AI error")
 	}
@@ -34,16 +47,6 @@ func (m *MockAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 	}
 	if strings.Contains(userPrompt, "reporting segments") { // Segment Agent
 		return `{"segments": [{"name": "Cloud", "standardized_type": "Service", "revenue_share": 40.0}], "geographic_breakdown": [{"region": "NA", "share": 60.0}]}`, nil
-	}
-	// TOC Response
-	if strings.Contains(userPrompt, "Analysis Tasks") {
-		return `{
-			"business": {"title": "Business", "anchor": "item1"},
-			"mda": {"title": "Management Discussion", "anchor": "item7"},
-			"balance_sheet": {"title": "Consolidated Balance Sheets", "anchor": "bs"},
-			"notes": {"title": "Notes", "anchor": "notes"},
-			"risk_factors": {"title": "Risk Factors", "anchor": "item1a"}
-		}`, nil
 	}
 
 	return "{}", nil
@@ -73,13 +76,13 @@ func TestParallelExtractionPerformance(t *testing.T) {
 	mockHTML := fmt.Sprintf(`
 		<html><body>
 		%s
-		[TABLE: BUSINESS]
+		<a id="item1"></a>[TABLE: BUSINESS]
 		Our business is strong.
-		[TABLE: MDA]
+		<a id="item7"></a>[TABLE: MDA]
 		We plan to grow 10%%.
-		[TABLE: RISK_FACTORS]
+		<a id="item1a"></a>[TABLE: RISK_FACTORS]
 		We face regulatory risks.
-		[TABLE: BALANCE_SHEET]
+		<a id="bs"></a>[TABLE: BALANCE_SHEET]
 		Assets: 100
 		%s
 		</body></html>
@@ -137,7 +140,12 @@ func TestPartialFailureResilience(t *testing.T) {
 		&MockAIProvider{delay: 10 * time.Millisecond, shouldFail: true},
 	)
 
-	mockHTML := "<html><body>" + strings.Repeat("ignore ", 200) + "[TABLE: BALANCE_SHEET]</body></html>"
+	// Include anchor to allow TOC slicing to succeed, and padding to pass length check
+	// Increase padding to ensure extracted content exceeds minimum threshold (likely > 5000 chars based on parallel test)
+	padding := strings.Repeat("Financial data ", 500)
+	mockHTML := "<html><body>" + strings.Repeat("ignore ", 200) +
+		"Item 8. Financial Statements\n" +
+		"<a id=\"bs\"></a>[TABLE: BALANCE_SHEET]" + padding + "</body></html>"
 
 	report, err := orchestrator.ExtractComprehensiveReport(context.Background(), mockHTML, DocumentMetadata{}, 2024)
 
