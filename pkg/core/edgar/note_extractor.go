@@ -208,6 +208,10 @@ func (e *NoteExtractor) categorizeNote(title string) string {
 
 // llmExtractStructure uses LLM to extract structured data from note
 func (e *NoteExtractor) llmExtractStructure(ctx context.Context, noteText string, category string) (map[string]interface{}, error) {
+	if e.provider == nil {
+		return nil, fmt.Errorf("no AI provider configured")
+	}
+
 	systemPrompt := `You are a Financial Data Extractor. Extract structured information from SEC filing notes.
 Return a JSON object with relevant fields based on the note content.
 Be concise. Extract numerical values, dates, and key terms.`
@@ -309,6 +313,10 @@ func (e *NoteExtractor) detectMarkdownTables(text string) []string {
 
 // extractTableRows uses LLM to extract structured rows from a table
 func (e *NoteExtractor) extractTableRows(ctx context.Context, tableText string, tableIndex int, fiscalYear int) NoteTable {
+	if e.provider == nil {
+		return NoteTable{Index: tableIndex}
+	}
+
 	systemPrompt := `You are a Financial Table Parser. Extract rows from markdown tables as structured JSON.
 Return JSON: {"title": "...", "rows": [{"label": "...", "values": [{"year": 2024, "value": 1234.5}, ...]}]}`
 
