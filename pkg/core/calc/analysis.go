@@ -1,8 +1,121 @@
 package calc
 
 import (
+	"agentic_valuation/pkg/core/edgar"
 	"math"
 )
+
+// =============================================================================
+// FINANCIAL ANALYSIS ENGINE
+// =============================================================================
+
+// AnalyzeFinancials generates comprehensive analysis (Common Size + Growth)
+func AnalyzeFinancials(current *edgar.FSAPDataResponse, history []*edgar.FSAPDataResponse) *CommonSizeAnalysis {
+	if current == nil {
+		return &CommonSizeAnalysis{
+			IncomeStatement: make(map[string]*AnalysisResult),
+			BalanceSheet:    make(map[string]*AnalysisResult),
+			CashFlow:        make(map[string]*AnalysisResult),
+		}
+	}
+
+	analysis := &CommonSizeAnalysis{
+		IncomeStatement: make(map[string]*AnalysisResult),
+		BalanceSheet:    make(map[string]*AnalysisResult),
+		CashFlow:        make(map[string]*AnalysisResult),
+	}
+
+	// 1. Common Size Analysis (Vertical Analysis)
+	// Base: Total Revenue for IS, Total Assets for BS
+	var revenue, totalAssets float64
+	if current.IncomeStatement.GrossProfitSection != nil && current.IncomeStatement.GrossProfitSection.Revenues != nil {
+		revenue = getVal(current.IncomeStatement.GrossProfitSection.Revenues)
+	}
+	if current.BalanceSheet.ReportedForValidation.TotalAssets != nil {
+		totalAssets = getVal(current.BalanceSheet.ReportedForValidation.TotalAssets)
+	}
+
+	// Helper to add IS analysis
+	addIS := func(key string, val *edgar.FSAPValue) {
+		if val == nil {
+			return
+		}
+		v := getVal(val)
+		pct := safeDiv(v, revenue)
+		analysis.IncomeStatement[key] = &AnalysisResult{Value: pct}
+	}
+
+	// Helper to add BS analysis
+	addBS := func(key string, val *edgar.FSAPValue) {
+		if val == nil {
+			return
+		}
+		v := getVal(val)
+		pct := safeDiv(v, totalAssets)
+		analysis.BalanceSheet[key] = &AnalysisResult{Value: pct}
+	}
+
+	// Income Statement Common Size
+	is := current.IncomeStatement
+	if is.GrossProfitSection != nil {
+		addIS("cost_of_goods_sold", is.GrossProfitSection.CostOfGoodsSold)
+		addIS("gross_profit", is.GrossProfitSection.GrossProfit)
+	}
+	if is.OperatingCostSection != nil {
+		addIS("sga_expenses", is.OperatingCostSection.SGAExpenses)
+		addIS("rd_expenses", is.OperatingCostSection.RDExpenses)
+		addIS("operating_income", is.OperatingCostSection.OperatingIncome)
+	}
+	if is.NetIncomeSection != nil {
+		addIS("net_income", is.NetIncomeSection.NetIncomeToCommon)
+	}
+
+	// Balance Sheet Common Size
+	bs := current.BalanceSheet
+	addBS("cash_and_equivalents", bs.CurrentAssets.CashAndEquivalents)
+	addBS("accounts_receivable", bs.CurrentAssets.AccountsReceivableNet)
+	addBS("inventory", bs.CurrentAssets.Inventories)
+	addBS("ppe_net", bs.NoncurrentAssets.PPENet)
+	addBS("goodwill", bs.NoncurrentAssets.Goodwill)
+	addBS("accounts_payable", bs.CurrentLiabilities.AccountsPayable)
+	addBS("long_term_debt", bs.NoncurrentLiabilities.LongTermDebt)
+	addBS("total_equity", bs.ReportedForValidation.TotalEquity)
+
+	// 2. Growth Analysis (Horizontal Analysis)
+	// Compare current vs immediate prior year
+	// NOTE: Ideally we iterate through full history, but for this struct we just want "Current Growth"
+	// or we expand CommonSizeAnalysis to hold a map of growth rates.
+	// For now, let's look for the prior year in 'history' list.
+	var prior *edgar.FSAPDataResponse
+	targetPriorYear := current.FiscalYear - 1
+	for _, h := range history {
+		if h.FiscalYear == targetPriorYear {
+			prior = h
+			break
+		}
+	}
+
+	if prior != nil {
+		// IS Growth
+		calcGrowth := func(currVal, priorVal *edgar.FSAPValue) float64 {
+			c := getVal(currVal)
+			p := getVal(priorVal)
+			return GrowthRate(c, p)
+		}
+
+		if is.GrossProfitSection != nil && prior.IncomeStatement.GrossProfitSection != nil {
+			g := calcGrowth(is.GrossProfitSection.Revenues, prior.IncomeStatement.GrossProfitSection.Revenues)
+			analysis.IncomeStatement["revenue_growth"] = &AnalysisResult{Value: g}
+		}
+		if is.NetIncomeSection != nil && prior.IncomeStatement.NetIncomeSection != nil {
+			g := calcGrowth(is.NetIncomeSection.NetIncomeToCommon, prior.IncomeStatement.NetIncomeSection.NetIncomeToCommon)
+			analysis.IncomeStatement["net_income_growth"] = &AnalysisResult{Value: g}
+		}
+	}
+
+	return analysis
+}
+
 
 // =============================================================================
 // ADVANCED PROFITABILITY (PENMAN FRAMEWORK)

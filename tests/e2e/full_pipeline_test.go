@@ -155,14 +155,27 @@ func TestE2E_FullPipeline_ExtractionToSynthesis(t *testing.T) {
 				t.Error("❌ Golden Record Timeline is empty")
 			}
 
-			// Check if 2024 data exists in timeline
-			if yearData, ok := goldenRecord.Timeline[2024]; !ok {
-				t.Error("❌ Golden Record missing 2024 data")
+			// Find Latest Year (Dynamic Recency)
+			var lastYear int
+			for y := range goldenRecord.Timeline {
+				if y > lastYear {
+					lastYear = y
+				}
+			}
+			t.Logf("📅 Identified Latest Fiscal Year: %d", lastYear)
+
+			if lastYear == 0 {
+				t.Fatal("❌ Could not determine latest fiscal year")
+			}
+
+			// Check if latest year data exists in timeline
+			if yearData, ok := goldenRecord.Timeline[lastYear]; !ok {
+				t.Error("❌ Golden Record missing latest year data")
 			} else {
 				if yearData.IncomeStatement.GrossProfitSection.Revenues.Value == nil {
-					t.Error("❌ Golden Record has nil Revenue for 2024")
+					t.Errorf("❌ Golden Record has nil Revenue for %d", lastYear)
 				}
-				t.Logf("✅ Golden Record Validated for %s", company.Name)
+				t.Logf("✅ Golden Record Validated for %s (FY%d)", company.Name, lastYear)
 			}
 
 			// E. Stage 3: Cognitive Roundtable (Debate)
@@ -198,7 +211,7 @@ func TestE2E_FullPipeline_ExtractionToSynthesis(t *testing.T) {
 				fmt.Sprintf("TEST-DEBATE-%s", company.CIK),
 				ticker,
 				company.Name,
-				"2024",
+				fmt.Sprintf("%d", lastYear), // Dynamic Year Context
 				false, // isSimulation: FALSE -> REAL AGENTS
 				debate.ModeAutomatic,
 				mgr,
@@ -272,11 +285,20 @@ func TestE2E_FullPipeline_ExtractionToSynthesis(t *testing.T) {
 			}
 
 			// Calculate Historical Common-Size Ratios for Defaults
+			// Uses lastYear detected earlier
 			var defaults calc.CommonSizeDefaults
-			// Try to get 2024 Actuals
-			if hist2024, ok := extractedData.HistoricalData[2024]; ok {
-				defaults = calc.CalculateCommonSizeDefaults(&hist2024)
+
+			// Use the new Analysis Engine if available, but for defaults sticking to legacy for minimal disruption
+			// However, we should verify AnalyzeFinancials works
+			// Let's call it for logging purposes at least
+			// var historyList []*edgar.FSAPDataResponse // We only have one extraction snapshot here
+			// analysis := calc.AnalyzeFinancials(extractedData, historyList)
+
+			// Try to get Latest Actuals from extracted data (using lastYear)
+			if histLast, ok := extractedData.HistoricalData[lastYear]; ok {
+				defaults = calc.CalculateCommonSizeDefaults(&histLast)
 			} else {
+				// Fallback: try finding any year
 				defaults = calc.CalculateCommonSizeDefaults(nil)
 			}
 
@@ -289,8 +311,8 @@ func TestE2E_FullPipeline_ExtractionToSynthesis(t *testing.T) {
 			defaultSBC := defaults.StockBasedCompPercent
 			defaultINT := defaults.DebtInterestRate
 
-			t.Logf("📊 Calculated Historical Defaults (2024): COGS=%.1f%%, SG&A=%.1f%%, R&D=%.1f%%, Tax=%.1f%%, SBC=%.1f%%, IntCost=%.1f%%",
-				defaultCOGS*100, defaultSGA*100, defaultRD*100, defaultTAX*100, defaultSBC*100, defaultINT*100)
+			t.Logf("📊 Calculated Historical Defaults (%d): COGS=%.1f%%, SG&A=%.1f%%, R&D=%.1f%%, Tax=%.1f%%, SBC=%.1f%%, IntCost=%.1f%%",
+				lastYear, defaultCOGS*100, defaultSGA*100, defaultRD*100, defaultTAX*100, defaultSBC*100, defaultINT*100)
 
 			// Map Debate Output to Projection Drivers (Drivers only)
 			baseAssumptions := projection.ProjectionAssumptions{
@@ -337,8 +359,8 @@ func TestE2E_FullPipeline_ExtractionToSynthesis(t *testing.T) {
 			// Run Projection Loop (5 Years)
 			var projections []*projection.ProjectedFinancials
 
-			// Start from last actuals (2024 from Golden Record)
-			lastActuals := goldenRecord.Timeline[2024]
+			// Start from last actuals (lastYear from Golden Record)
+			lastActuals := goldenRecord.Timeline[lastYear]
 			prevIS := &lastActuals.IncomeStatement
 			prevBS := &lastActuals.BalanceSheet
 
@@ -349,7 +371,7 @@ func TestE2E_FullPipeline_ExtractionToSynthesis(t *testing.T) {
 			}
 
 			for i := 1; i <= 5; i++ {
-				targetYear := 2024 + i
+				targetYear := lastYear + i
 				proj := projEngine.ProjectYear(prevIS, prevBS, prevSegments, baseAssumptions, targetYear)
 				projections = append(projections, proj)
 

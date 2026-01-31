@@ -241,12 +241,3 @@ func CalculateCommonSizeDefaults(histData *edgar.YearData) CommonSizeDefaults {
 	return defaults
 }
 
-// AnalyzeFinancials is a placeholder to satisfy material_pool.go dependency
-// TODO: Implement full analysis
-func AnalyzeFinancials(current *edgar.FSAPDataResponse, history []*edgar.FSAPDataResponse) *CommonSizeAnalysis {
-	return &CommonSizeAnalysis{
-		IncomeStatement: make(map[string]*AnalysisResult),
-		BalanceSheet:    make(map[string]*AnalysisResult),
-		CashFlow:        make(map[string]*AnalysisResult),
-	}
-}
