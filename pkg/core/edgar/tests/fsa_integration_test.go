@@ -1,4 +1,4 @@
-package core_test
+package tests
 
 import (
 	"agentic_valuation/pkg/core/calc"
@@ -83,9 +83,10 @@ func TestEndToEnd_ValuationReport_Apple(t *testing.T) {
 	provider := &DeepSeekAIProvider{provider: &llm.DeepSeekProvider{}}
 	meta := &edgar.FilingMetadata{CompanyName: "Apple Inc.", CIK: "0000320193", FiscalYear: 2024, Form: "10-K"}
 
-	// Extractor Agent
-	t.Log("🚀 Starting End-to-End Extraction Pipeline...")
-	extracted, err := edgar.ParallelExtract(context.Background(), markdown, provider, meta)
+	// Extractor Agent - Using v2.0 architecture
+	t.Log("🚀 Starting End-to-End Extraction Pipeline (V2.0)...")
+	v2 := edgar.NewV2Extractor(provider)
+	extracted, err := v2.Extract(context.Background(), markdown, meta)
 	if err != nil {
 		t.Fatalf("Financial Statement Extraction failed: %v", err)
 	}

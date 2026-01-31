@@ -83,16 +83,23 @@ HTTP handlers and routing logic.
 | Directory | Purpose |
 | :--- | :--- |
 | **`agent/`** | **Orchestration**: Logic for managing AI agent lifecycles and tasks. |
-| **`calc/`** | **Calculation Engine**: Financial math, ratio calculations, common-size analysis, and valuation models. |
+| **`analysis/`** | **Analysis Engine**: Multi-year financial analysis orchestration, common-size, ratios, forensic models (Beneish, Benford). |
+| **`assumption/`** | **Assumption Types**: Data structures for projection assumptions. |
+| **`calc/`** | **Calculation Engine**: Financial math, ratio calculations, common-size analysis, ROCE decomposition, and forensic models. |
 | **`debate/`** | **Multi-Agent Debate**: Debate orchestration, agent definitions, and consensus building. |
-| **`edgar/`** | **SEC Integration**: Clients for SEC EDGAR, filing retrieval, and parsing. Includes `segment_agent.go`, `qualitative_agents.go`. |
+| **`edgar/`** | **SEC Integration**: Clients for SEC EDGAR, filing retrieval, LLM-based extraction (`ParallelExtract`), and FSAP types. |
 | **`fee/`** | **Financial Extraction Engine**: Advanced logic for parsing 10-K HTML, locating tables, and extracting data. |
-| **`ingest/`** | **Data Pipeline**: Workflows for ingesting raw data into the system. |
+| **`ingest/`** | **Data Ingestion**: SEC EDGAR API client (`EDGARClient`), ticker→CIK lookup, filing list retrieval. |
+| **`knowledge/`** | **Knowledge Assets**: Storage and retrieval of structured knowledge from filings. |
 | **`llm/`** | **LLM Providers**: Provider implementations for LLMs (DeepSeek, Qwen, Gemini, etc.). |
+| **`pipeline/`** | **Pipeline Orchestrator**: End-to-end flow: Extraction → Synthesis → Analysis → Storage. |
 | **`projection/`** | **Projection Engine**: Financial statement articulation and forecasting. |
 | **`prompt/`** | **Prompt Library**: Runtime prompt loading, registry, and template rendering. |
-| **`store/`** | **Data Store**: Database connections, caching (FSAPCache), and persistence layer. |
+| **`store/`** | **Data Store**: Database connections, caching (FSAPCache), `AnalysisRepo` for persisting analysis results. |
+| **`synthesis/`** | **Synthesis Engine**: Zipper algorithm, Golden Record generation, multi-year reconciliation. |
 | **`utils/`** | **Shared Utilities**: Logging, error handling, JSON helpers, and common tools. |
+| **`validate/`** | **Validation**: FSAP mapping validation and data integrity checks. |
+| **`valuation/`** | **Valuation Models**: DCF and other valuation methodologies. |
 
 #### `pkg/core/calc/` (Calculation Engine)
 | File | Purpose |
@@ -114,11 +121,30 @@ HTTP handlers and routing logic.
 | `adapter.go` | `ConvertDebateReportToAssumptions()` - Debate → Engine bridge. |
 | `mapper.go` | `MapFromCommonSizeDefaults()` - Calc → Projection bridge. |
 
+#### `pkg/core/analysis/` (Analysis Engine)
+| File | Purpose |
+| :--- | :--- |
+| `engine.go` | `AnalysisEngine` - Orchestrates multi-year analysis from GoldenRecord. |
+| `types.go` | `CompanyAnalysis`, `YearlyAnalysis` - Analysis result structures. |
+
+#### `pkg/core/synthesis/` (Synthesis Engine)
+| File | Purpose |
+| :--- | :--- |
+| `zipper.go` | `ZipperEngine` - Multi-period reconciliation (10-K/A dominance, recency bias). |
+| `types.go` | `GoldenRecord`, `ExtractionSnapshot`, `YearlySnapshot` - Core synthesis data structures. |
+| `reclassifier.go` | Active Reclassification Engine for note-to-table synthesis. |
+
+#### `pkg/core/pipeline/` (Pipeline Orchestrator)
+| File | Purpose |
+| :--- | :--- |
+| `orchestrator.go` | `PipelineOrchestrator` - End-to-end: Extraction → Synthesis → Analysis → Storage. Requires `ContentFetcher` and `AIProvider` injection. |
+
 #### `pkg/core/store/` (Data Store)
 | File | Purpose |
 | :--- | :--- |
 | `db.go` | Database connection pool initialization (Supabase PostgreSQL). |
 | `fsap_cache.go` | `FSAPCache` - Hybrid vault (DB + FileSystem) for FSAP extractions. |
+| `analysis_repo.go` | `AnalysisRepo` - Persists `GoldenRecord` and `CompanyAnalysis` to Supabase. |
 
 ### `pkg/models/`
 Data structures and database models (structs) shared across the application.

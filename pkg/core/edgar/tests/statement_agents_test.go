@@ -1,7 +1,7 @@
-package edgar
+package tests
 
 import (
-	"strings"
+	"agentic_valuation/pkg/core/edgar"
 	"testing"
 )
 
@@ -40,7 +40,7 @@ func TestDetectUnits(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			units := DetectUnits(tt.markdown)
+			units := edgar.DetectUnits(tt.markdown)
 			if units.Scale != tt.wantScale {
 				t.Errorf("Scale = %v, want %v", units.Scale, tt.wantScale)
 			}
@@ -51,38 +51,5 @@ func TestDetectUnits(t *testing.T) {
 	}
 }
 
-func TestSplitByTableMarkers(t *testing.T) {
-	markdown := `
-# Item 8. Financial Statements
-
-[TABLE: BALANCE_SHEET]
-| Assets | 2024 | 2023 |
-| Cash | 1000 | 900 |
-| Total Assets | 5000 | 4500 |
-
-[TABLE: INCOME_STATEMENT]  
-| Revenue | 2024 | 2023 |
-| Net Sales | 10000 | 9000 |
-
-[TABLE: CASH_FLOW_STATEMENT]
-| Operating | 2024 |
-| Net Income | 500 |
-`
-
-	sections := splitByTableMarkers(markdown)
-
-	if _, ok := sections[BalanceSheetType]; !ok {
-		t.Error("Expected BALANCE_SHEET section")
-	}
-	if _, ok := sections[IncomeStatementType]; !ok {
-		t.Error("Expected INCOME_STATEMENT section")
-	}
-	if _, ok := sections[CashFlowType]; !ok {
-		t.Error("Expected CASH_FLOW section")
-	}
-
-	// Check content
-	if !strings.Contains(sections[BalanceSheetType], "Total Assets") {
-		t.Error("Balance sheet section should contain 'Total Assets'")
-	}
-}
+// NOTE: TestSplitByTableMarkers removed - splitByTableMarkers was part of v1.0 legacy code
+// V2.0 architecture uses NavigatorAgent for statement location detection

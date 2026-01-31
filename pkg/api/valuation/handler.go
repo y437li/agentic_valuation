@@ -135,21 +135,22 @@ func HandleValuationReport(w http.ResponseWriter, r *http.Request) {
 	markdown = strings.Replace(markdown, "CONSOLIDATED BALANCE SHEETS", "\n[TABLE: BALANCE_SHEET]\n| CONSOLIDATED BALANCE SHEETS", 1)
 	markdown = strings.Replace(markdown, "CONSOLIDATED STATEMENTS OF CASH FLOWS", "\n[TABLE: CASH_FLOW]\n| CONSOLIDATED STATEMENTS OF CASH FLOWS", 1)
 
-	// 4. Run Extraction (Expensive)
+	// 4. Run Extraction (v2.0 Architecture: Navigator -> Mapper -> GoExtractor)
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 120*time.Second)
 	defer cancel()
 
-	fmt.Println("[VALUATION] Starting AI Extraction (Timeout: 120s)...")
+	fmt.Println("[VALUATION] Starting v2.0 AI Extraction (Timeout: 120s)...")
 	llmProvider := agentManager.GetProvider("data_extraction")
 	aiProvider := edgar.NewLLMAdapter(llmProvider)
 
-	extracted, err := edgar.ParallelExtract(ctxWithTimeout, markdown, aiProvider, meta)
+	v2Extractor := edgar.NewV2Extractor(aiProvider)
+	extracted, err := v2Extractor.Extract(ctxWithTimeout, markdown, meta)
 	if err != nil {
-		fmt.Printf("[ERROR] Extraction Failed or Timed Out: %v\n", err)
+		fmt.Printf("[ERROR] v2.0 Extraction Failed or Timed Out: %v\n", err)
 		http.Error(w, fmt.Sprintf("Extraction failed: %v", err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("[VALUATION] Extraction Completed Successfully.")
+	fmt.Println("[VALUATION] v2.0 Extraction Completed Successfully.")
 
 	// 5. Save to JSON Store
 	if err := fsapStore.Save(ctx, extracted, meta); err != nil {

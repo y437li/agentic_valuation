@@ -182,14 +182,11 @@ Return ONLY valid JSON array.
 	return reclassifications, nil
 }
 
-// ParallelFullTableExtraction uses specialized agents to extract each statement type in parallel.
-// Benefits over FullTableExtraction:
-//   - Dynamic unit detection (no hardcoded "millions")
-//   - Smaller context windows per agent (lower token usage)
-//   - Parallel execution (faster total time)
-//   - Easier to debug individual statement issues
+// ParallelFullTableExtraction uses the v2.0 architecture to extract each statement.
+// Uses Navigator → Mapper → GoExtractor pipeline for improved accuracy.
 func (a *LLMAnalyzer) ParallelFullTableExtraction(ctx context.Context, item8Markdown string, meta *FilingMetadata) (*FSAPDataResponse, error) {
-	return ParallelExtract(ctx, item8Markdown, a.provider, meta)
+	v2 := NewV2Extractor(a.provider)
+	return v2.Extract(ctx, item8Markdown, meta)
 }
 
 // PopulateSourcePositions searches for Label in markdown and fills MarkdownLine in Provenance.

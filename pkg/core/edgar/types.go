@@ -476,3 +476,13 @@ type YearData struct {
 	CashFlowStatement CashFlowStatement `json:"cash_flow_statement"`
 	SupplementalData  SupplementalData  `json:"supplemental_data"`
 }
+
+// ExtractedNote represents a parsed note from SEC filing
+type ExtractedNote struct {
+	NoteNumber     string                 `json:"note_number"`     // "Note 1", "Note 25"
+	NoteTitle      string                 `json:"note_title"`      // "Segment Information"
+	NoteCategory   string                 `json:"note_category"`   // Category classification (use NoteCategoryXxx from note_index_agent.go)
+	RawText        string                 `json:"raw_text"`        // Original markdown text
+	StructuredData map[string]interface{} `json:"structured_data"` // LLM-extracted fields
+	SourceDoc      string                 `json:"source_doc"`      // Filing accession number for provenance
+}

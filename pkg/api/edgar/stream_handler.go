@@ -324,12 +324,13 @@ func HandleEdgarFSAPMapStream(manager *agent.Manager) http.HandlerFunc {
 			var err error
 
 			if singleStatementMode {
-				// Single statement extraction mode - extract only the requested statement
-				llmResp, err = coreEdgar.ExtractSingleStatement(context.Background(), item8Markdown, adapter, meta, targetStatement)
+				// Single statement mode - still uses v2.0 extractor (filtering happens post-extraction)
+				v2 := coreEdgar.NewV2Extractor(adapter)
+				llmResp, err = v2.Extract(context.Background(), item8Markdown, meta)
 			} else {
-				// Full parallel extraction mode
-				analyzer := coreEdgar.NewLLMAnalyzer(adapter)
-				llmResp, err = analyzer.ParallelFullTableExtraction(context.Background(), item8Markdown, meta)
+				// Full parallel extraction mode using v2.0 architecture
+				v2 := coreEdgar.NewV2Extractor(adapter)
+				llmResp, err = v2.Extract(context.Background(), item8Markdown, meta)
 			}
 
 			if err != nil {
