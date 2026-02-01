@@ -157,9 +157,6 @@ func calculateGrowth(current, prior *edgar.FSAPDataResponse) GrowthMetrics {
 		metrics.EquityGrowth = g(current.BalanceSheet.ReportedForValidation.TotalEquity.Value, prior.BalanceSheet.ReportedForValidation.TotalEquity.Value)
 	}
 
-	// FCF (requires calculation or extraction, currently using placeholders if explicit field not present)
-	// Assuming logic handles this or we skip FCF growth for this simplified version.
-
 	return metrics
 }
 
@@ -249,15 +246,17 @@ func (e *AnalysisEngine) extractAllValues(d *edgar.FSAPDataResponse) []float64 {
 		}
 	}
 
-	// Cash Flow
-	if d.CashFlowStatement.CashSummary.NetCashOperating != nil {
-		appendVal(d.CashFlowStatement.CashSummary.NetCashOperating)
-	}
-	if d.CashFlowStatement.CashSummary.NetCashInvesting != nil {
-		appendVal(d.CashFlowStatement.CashSummary.NetCashInvesting)
-	}
-	if d.CashFlowStatement.CashSummary.NetCashFinancing != nil {
-		appendVal(d.CashFlowStatement.CashSummary.NetCashFinancing)
+	// Cash Flow - Fixed Safe Access
+	if d.CashFlowStatement.CashSummary != nil {
+		if d.CashFlowStatement.CashSummary.NetCashOperating != nil {
+			appendVal(d.CashFlowStatement.CashSummary.NetCashOperating)
+		}
+		if d.CashFlowStatement.CashSummary.NetCashInvesting != nil {
+			appendVal(d.CashFlowStatement.CashSummary.NetCashInvesting)
+		}
+		if d.CashFlowStatement.CashSummary.NetCashFinancing != nil {
+			appendVal(d.CashFlowStatement.CashSummary.NetCashFinancing)
+		}
 	}
 
 	return values

@@ -27,27 +27,19 @@ func CalculateBeneishMScore(current, prior *edgar.FSAPDataResponse) *BeneishMSco
 		return nil
 	}
 
-	// Helper to get value securely
-	get := func(v *edgar.FSAPValue) float64 {
-		if v == nil || v.Value == nil {
-			return 0
-		}
-		return *v.Value
-	}
-
 	// 1. DSRI: (Net Receivables_t / Sales_t) / (Net Receivables_t-1 / Sales_t-1)
-	recCurr := get(current.BalanceSheet.CurrentAssets.AccountsReceivableNet)
-	salesCurr := get(current.IncomeStatement.GrossProfitSection.Revenues)
-	recPrior := get(prior.BalanceSheet.CurrentAssets.AccountsReceivableNet)
-	salesPrior := get(prior.IncomeStatement.GrossProfitSection.Revenues)
+	recCurr := getReceivables(current)
+	salesCurr := getRevenue(current)
+	recPrior := getReceivables(prior)
+	salesPrior := getRevenue(prior)
 
 	dsri := safeDiv(safeDiv(recCurr, salesCurr), safeDiv(recPrior, salesPrior))
 
 	// 2. GMI: [(Sales_t-1 - COGS_t-1) / Sales_t-1] / [(Sales_t - COGS_t) / Sales_t]
 	// Actually GMI is (Gross Margin_t-1 / Gross Margin_t). If GM deteriorates, GMI > 1 (bad signal).
 	// GM = (Sales - COGS) / Sales = GrossProfit / Sales
-	gpCurr := get(current.IncomeStatement.GrossProfitSection.GrossProfit)
-	gpPrior := get(prior.IncomeStatement.GrossProfitSection.GrossProfit)
+	gpCurr := getGrossProfit(current)
+	gpPrior := getGrossProfit(prior)
 
 	gmCurr := safeDiv(gpCurr, salesCurr)
 	gmPrior := safeDiv(gpPrior, salesPrior)
@@ -60,9 +52,9 @@ func CalculateBeneishMScore(current, prior *edgar.FSAPDataResponse) *BeneishMSco
 	// High AQI > 1 indicates potentially excessive capitalization of costs.
 
 	calcSoftAssetsRatio := func(d *edgar.FSAPDataResponse) float64 {
-		ta := get(d.BalanceSheet.ReportedForValidation.TotalAssets)
-		ca := get(d.BalanceSheet.ReportedForValidation.TotalCurrentAssets)
-		ppe := get(d.BalanceSheet.NoncurrentAssets.PPENet)
+		ta := getTotalAssets(d)
+		ca := getTotalCurrentAssets(d)
+		ppe := getPPE(d)
 		// Assuming Securities are in Current Assets or Investments?
 		// Beneish defines "PP&E" strictly. Let's stick to CA + PPE as main realizable assets.
 		if ta == 0 {
@@ -80,12 +72,8 @@ func CalculateBeneishMScore(current, prior *edgar.FSAPDataResponse) *BeneishMSco
 	// DEPI > 1 means depreciation rate slowed down (income increasing).
 	// Dep Rate = Dep Exp / (Net PPE + Dep Exp) -> Dep Exp / Gross PPE
 	calcDepRate := func(d *edgar.FSAPDataResponse) float64 {
-		dep := get(d.SupplementalData.DepreciationExpense)
-		if dep == 0 {
-			// Try cash flow if supplemental missing
-			dep = get(d.CashFlowStatement.OperatingActivities.DepreciationAmortization)
-		}
-		ppeNet := get(d.BalanceSheet.NoncurrentAssets.PPENet)
+		dep := getDepreciation(d)
+		ppeNet := getPPE(d)
 		return safeDiv(dep, ppeNet+dep)
 	}
 
@@ -94,8 +82,8 @@ func CalculateBeneishMScore(current, prior *edgar.FSAPDataResponse) *BeneishMSco
 	// 6. SGAI: (SGA_t / Sales_t) / (SGA_t-1 / Sales_t-1)
 	// SGAI > 1 means decreasing administrative efficiency (or reclassification).
 	calcSGARatio := func(d *edgar.FSAPDataResponse) float64 {
-		sga := get(d.IncomeStatement.OperatingCostSection.SGAExpenses)
-		sal := get(d.IncomeStatement.GrossProfitSection.Revenues)
+		sga := getSGA(d)
+		sal := getRevenue(d)
 		return safeDiv(sga, sal)
 	}
 
@@ -104,8 +92,8 @@ func CalculateBeneishMScore(current, prior *edgar.FSAPDataResponse) *BeneishMSco
 	// 7. LVGI: [(LTD_t + CL_t) / TA_t] / [(LTD_t-1 + CL_t-1) / TA_t-1]
 	// Liability / Assets leverage.
 	calcLev := func(d *edgar.FSAPDataResponse) float64 {
-		tl := get(d.BalanceSheet.ReportedForValidation.TotalLiabilities)
-		ta := get(d.BalanceSheet.ReportedForValidation.TotalAssets)
+		tl := getTotalLiabilities(d)
+		ta := getTotalAssets(d)
 		return safeDiv(tl, ta)
 	}
 
@@ -113,9 +101,9 @@ func CalculateBeneishMScore(current, prior *edgar.FSAPDataResponse) *BeneishMSco
 
 	// 8. TATA: (Income from Contin Op - Cash from Ops) / Total Assets
 	// Measures total accruals.
-	income := get(current.IncomeStatement.NetIncomeSection.NetIncomeToCommon) // Or IncomeBeforeExtraordinary
-	cfo := get(current.CashFlowStatement.CashSummary.NetCashOperating)
-	taCurr := get(current.BalanceSheet.ReportedForValidation.TotalAssets)
+	income := getNetIncome(current) // Or IncomeBeforeExtraordinary
+	cfo := getNetCashOperating(current)
+	taCurr := getTotalAssets(current)
 
 	tata := safeDiv(income-cfo, taCurr)
 

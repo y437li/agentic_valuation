@@ -76,34 +76,34 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 
 	// --- Level 1: Growth ---
 	if prior != nil {
-		analysis.Level1.RevenueGrowth = calcGrowth(getVal(current.IncomeStatement.GrossProfitSection.Revenues), getVal(prior.IncomeStatement.GrossProfitSection.Revenues))
-		analysis.Level1.OperatingIncomeGrowth = calcGrowth(getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome), getVal(prior.IncomeStatement.OperatingCostSection.OperatingIncome))
-		analysis.Level1.NetIncomeGrowth = calcGrowth(getVal(current.IncomeStatement.NetIncomeSection.NetIncomeToCommon), getVal(prior.IncomeStatement.NetIncomeSection.NetIncomeToCommon))
-		analysis.Level1.EPSGrowth = calcGrowth(getVal(current.SupplementalData.EPSDiluted), getVal(prior.SupplementalData.EPSDiluted))
+		analysis.Level1.RevenueGrowth = calcGrowth(getRevenue(current), getRevenue(prior))
+		analysis.Level1.OperatingIncomeGrowth = calcGrowth(getOpIncome(current), getOpIncome(prior))
+		analysis.Level1.NetIncomeGrowth = calcGrowth(getNetIncome(current), getNetIncome(prior))
+		analysis.Level1.EPSGrowth = calcGrowth(getEPS(current), getEPS(prior))
 
 		// Free Cash Flow Approx: NetCashOperating - Capex
-		currFCF := getVal(current.CashFlowStatement.CashSummary.NetCashOperating) - getVal(current.CashFlowStatement.InvestingActivities.Capex)
-		priorFCF := getVal(prior.CashFlowStatement.CashSummary.NetCashOperating) - getVal(prior.CashFlowStatement.InvestingActivities.Capex)
+		currFCF := getNetCashOperating(current) - getCapex(current)
+		priorFCF := getNetCashOperating(prior) - getCapex(prior)
 		analysis.Level1.FCFGrowth = calcGrowth(currFCF, priorFCF)
 	}
 
 	// --- Level 2: Returns (DuPont) ---
-	rev := getVal(current.IncomeStatement.GrossProfitSection.Revenues)
-	netIncome := getVal(current.IncomeStatement.NetIncomeSection.NetIncomeToCommon)
+	rev := getRevenue(current)
+	netIncome := getNetIncome(current)
 
-	totalAssets := getVal(current.BalanceSheet.ReportedForValidation.TotalAssets)
-	totalEquity := getVal(current.BalanceSheet.ReportedForValidation.TotalEquity)
+	totalAssets := getTotalAssets(current)
+	totalEquity := getTotalEquity(current)
 
 	avgAssets := totalAssets
 	avgEquity := totalEquity
 
 	if prior != nil {
-		avgAssets = (totalAssets + getVal(prior.BalanceSheet.ReportedForValidation.TotalAssets)) / 2
-		avgEquity = (totalEquity + getVal(prior.BalanceSheet.ReportedForValidation.TotalEquity)) / 2
+		avgAssets = (totalAssets + getTotalAssets(prior)) / 2
+		avgEquity = (totalEquity + getTotalEquity(prior)) / 2
 	}
 
-	analysis.Level2.GrossMargin = safeDiv(getVal(current.IncomeStatement.GrossProfitSection.GrossProfit), rev)
-	analysis.Level2.OperatingMargin = safeDiv(getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome), rev)
+	analysis.Level2.GrossMargin = safeDiv(getGrossProfit(current), rev)
+	analysis.Level2.OperatingMargin = safeDiv(getOpIncome(current), rev)
 	analysis.Level2.NetMargin = safeDiv(netIncome, rev)
 	analysis.Level2.AssetTurnover = safeDiv(rev, avgAssets)
 	analysis.Level2.FinancialLeverage = safeDiv(avgAssets, avgEquity)
@@ -111,9 +111,9 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	analysis.Level2.ROE = analysis.Level2.ROA * analysis.Level2.FinancialLeverage // DuPont Identity
 
 	// Simple ROIC proxy: NOPAT / (Equity + Debt - Cash)
-	ebit := getVal(current.IncomeStatement.OperatingCostSection.OperatingIncome)
-	taxExp := getVal(current.IncomeStatement.TaxAdjustments.IncomeTaxExpense)
-	preTaxIncome := getVal(current.IncomeStatement.NonOperatingSection.IncomeBeforeTax)
+	ebit := getOpIncome(current)
+	taxExp := getIncomeTaxExpense(current)
+	preTaxIncome := getIncomeBeforeTax(current)
 
 	effectiveTaxRate := 0.21 // Default
 	if preTaxIncome != 0 {
@@ -129,31 +129,31 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 
 	nopat := ebit * (1 - effectiveTaxRate)
 
-	debt := getVal(current.BalanceSheet.NoncurrentLiabilities.LongTermDebt) + getVal(current.BalanceSheet.CurrentLiabilities.NotesPayableShortTermDebt)
-	cash := getVal(current.BalanceSheet.CurrentAssets.CashAndEquivalents)
+	debt := getLongTermDebt(current) + getShortTermDebt(current)
+	cash := getCash(current)
 	investedCapital := avgEquity + debt - cash
 	analysis.Level2.ROIC = safeDiv(nopat, investedCapital)
 
 	// --- Level 3: Risk ---
-	ca := getVal(current.BalanceSheet.ReportedForValidation.TotalCurrentAssets)
-	cl := getVal(current.BalanceSheet.ReportedForValidation.TotalCurrentLiabilities)
-	inv := getVal(current.BalanceSheet.CurrentAssets.Inventories)
-	interest := getVal(current.IncomeStatement.NonOperatingSection.InterestExpense)
-	re := getVal(current.BalanceSheet.Equity.RetainedEarningsDeficit)
-	ta := getVal(current.BalanceSheet.ReportedForValidation.TotalAssets)
-	tl := getVal(current.BalanceSheet.ReportedForValidation.TotalLiabilities)
+	ca := getTotalCurrentAssets(current)
+	cl := getTotalCurrentLiabilities(current)
+	inv := getInventory(current)
+	interest := getInterestExpense(current)
+	re := getRetainedEarnings(current)
+	ta := getTotalAssets(current)
+	tl := getTotalLiabilities(current)
 
 	// Market Value of Equity
-	shares := getVal(current.SupplementalData.SharesOutstandingDiluted)
-	price := getPtrVal(current.SupplementalData.SharePriceYearEnd)
+	shares := getSharesOutstanding(current)
+	price := getSharePrice(current)
 	mve := shares * price
 	if mve == 0 {
-		mve = getVal(current.BalanceSheet.ReportedForValidation.TotalEquity) // Fallback to Book Value
+		mve = getTotalEquity(current) // Fallback to Book Value
 	}
 
 	analysis.Level3.CurrentRatio = safeDiv(ca, cl)
 	analysis.Level3.QuickRatio = safeDiv(ca-inv, cl)
-	analysis.Level3.DebtToEquity = safeDiv(debt, getVal(current.BalanceSheet.ReportedForValidation.TotalEquity))
+	analysis.Level3.DebtToEquity = safeDiv(debt, getTotalEquity(current))
 	analysis.Level3.InterestCoverage = safeDiv(ebit, math.Abs(interest)) // Interest often negative
 
 	// Altman Z-Score
@@ -169,13 +169,13 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 
 	// 1. Calculate NOA and Net Debt for Current and Prior
 	calcNetDebt := func(d *edgar.FSAPDataResponse) float64 {
-		totalDebt := getVal(d.BalanceSheet.NoncurrentLiabilities.LongTermDebt) + getVal(d.BalanceSheet.CurrentLiabilities.NotesPayableShortTermDebt)
-		c := getVal(d.BalanceSheet.CurrentAssets.CashAndEquivalents)
+		totalDebt := getLongTermDebt(d) + getShortTermDebt(d)
+		c := getCash(d)
 		return totalDebt - c
 	}
 
 	calcEquity := func(d *edgar.FSAPDataResponse) float64 {
-		return getVal(d.BalanceSheet.ReportedForValidation.TotalEquity)
+		return getTotalEquity(d)
 	}
 
 	currNetDebt := calcNetDebt(current)
@@ -208,7 +208,7 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	// If the line item is "NetInterestExpense" (checking schema):
 	// In types it's under NonOperatingSection.InterestExpense. Usually net.
 
-	netInterest := getVal(current.IncomeStatement.NonOperatingSection.InterestExpense)
+	netInterest := getInterestExpense(current)
 	// If negative (expense), abs it.
 	netFinancingExpPreTax := math.Abs(netInterest)
 	netFinancingExpAfterTax := netFinancingExpPreTax * (1 - effectiveTaxRate)
@@ -242,7 +242,11 @@ func PerformThreeLevelAnalysis(current *edgar.FSAPDataResponse, prior *edgar.FSA
 	return analysis
 }
 
-// Helper to get float from FSAPValue pointer
+// =================================================================================================
+// Safe Accessors - Ensure no panics on nil pointers
+// =================================================================================================
+
+// Helper to get float from FSAPValue pointer safely
 func getVal(v *edgar.FSAPValue) float64 {
 	if v == nil || v.Value == nil {
 		return 0
@@ -250,7 +254,7 @@ func getVal(v *edgar.FSAPValue) float64 {
 	return *v.Value
 }
 
-// Helper for float pointer
+// Helper for float pointer safely
 func getPtrVal(v *float64) float64 {
 	if v == nil {
 		return 0
@@ -263,4 +267,195 @@ func calcGrowth(curr, prior float64) float64 {
 		return 0
 	}
 	return (curr - prior) / math.Abs(prior)
+}
+
+// --- Specific Field Accessors ---
+
+func getRevenue(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.GrossProfitSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.GrossProfitSection.Revenues)
+}
+
+func getGrossProfit(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.GrossProfitSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.GrossProfitSection.GrossProfit)
+}
+
+func getOpIncome(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.OperatingCostSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.OperatingCostSection.OperatingIncome)
+}
+
+func getNetIncome(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.NetIncomeSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.NetIncomeSection.NetIncomeToCommon)
+}
+
+func getEPS(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.SupplementalData.EPSDiluted)
+}
+
+func getNetCashOperating(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.CashFlowStatement.CashSummary == nil {
+		return 0
+	}
+	return getVal(d.CashFlowStatement.CashSummary.NetCashOperating)
+}
+
+func getCapex(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.CashFlowStatement.InvestingActivities == nil {
+		return 0
+	}
+	return getVal(d.CashFlowStatement.InvestingActivities.Capex)
+}
+
+func getTotalAssets(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.ReportedForValidation.TotalAssets)
+}
+
+func getTotalEquity(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.ReportedForValidation.TotalEquity)
+}
+
+func getTotalLiabilities(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.ReportedForValidation.TotalLiabilities)
+}
+
+func getIncomeTaxExpense(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.TaxAdjustments == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.TaxAdjustments.IncomeTaxExpense)
+}
+
+func getIncomeBeforeTax(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.NonOperatingSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.NonOperatingSection.IncomeBeforeTax)
+}
+
+func getLongTermDebt(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.NoncurrentLiabilities.LongTermDebt)
+}
+
+func getShortTermDebt(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.CurrentLiabilities.NotesPayableShortTermDebt)
+}
+
+func getCash(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.CurrentAssets.CashAndEquivalents)
+}
+
+func getTotalCurrentAssets(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.ReportedForValidation.TotalCurrentAssets)
+}
+
+func getTotalCurrentLiabilities(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.ReportedForValidation.TotalCurrentLiabilities)
+}
+
+func getInventory(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.CurrentAssets.Inventories)
+}
+
+func getInterestExpense(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.NonOperatingSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.NonOperatingSection.InterestExpense)
+}
+
+func getRetainedEarnings(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.Equity.RetainedEarningsDeficit)
+}
+
+func getSharesOutstanding(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.SupplementalData.SharesOutstandingDiluted)
+}
+
+func getSharePrice(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getPtrVal(d.SupplementalData.SharePriceYearEnd)
+}
+
+// --- Additional Safe Accessors for Beneish M-Score ---
+
+func getReceivables(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	// CurrentAssets is a struct, checks are safe structurally
+	return getVal(d.BalanceSheet.CurrentAssets.AccountsReceivableNet)
+}
+
+func getPPE(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	return getVal(d.BalanceSheet.NoncurrentAssets.PPENet)
+}
+
+func getDepreciation(d *edgar.FSAPDataResponse) float64 {
+	if d == nil {
+		return 0
+	}
+	val := getVal(d.SupplementalData.DepreciationExpense)
+	if val == 0 && d.CashFlowStatement.OperatingActivities != nil {
+		val = getVal(d.CashFlowStatement.OperatingActivities.DepreciationAmortization)
+	}
+	return val
+}
+
+func getSGA(d *edgar.FSAPDataResponse) float64 {
+	if d == nil || d.IncomeStatement.OperatingCostSection == nil {
+		return 0
+	}
+	return getVal(d.IncomeStatement.OperatingCostSection.SGAExpenses)
 }

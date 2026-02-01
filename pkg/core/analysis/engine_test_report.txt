@@ -1,0 +1,92 @@
+--- Dynamic Analysis Engine Test Report ---
+Time: 2026-02-01T00:45:56Z
+--------------------------------------------------------------------------------------
+TICKER     | TYPE         | STATUS     | DETAILS
+--------------------------------------------------------------------------------------
+AAPL01     | Healthy      | PASS       | Saved to DB. RevGrowth: -3.80%
+AAPL02     | Healthy      | PASS       | Saved to DB. RevGrowth: 10.46%
+AAPL03     | Healthy      | PASS       | Saved to DB. RevGrowth: 5.66%
+AAPL04     | Healthy      | PASS       | Saved to DB. RevGrowth: 0.13%
+AAPL05     | Healthy      | PASS       | Saved to DB. RevGrowth: 3.06%
+AAPL06     | Healthy      | PASS       | Saved to DB. RevGrowth: -4.59%
+AAPL07     | Healthy      | PASS       | Saved to DB. RevGrowth: 5.17%
+AAPL08     | Healthy      | PASS       | Saved to DB. RevGrowth: 8.46%
+AAPL09     | Healthy      | PASS       | Saved to DB. RevGrowth: 9.66%
+AAPL10     | Healthy      | PASS       | Saved to DB. RevGrowth: 14.99%
+AAPL11     | Healthy      | PASS       | Saved to DB. RevGrowth: 9.83%
+AAPL12     | Healthy      | PASS       | Saved to DB. RevGrowth: -0.29%
+AAPL13     | Healthy      | PASS       | Saved to DB. RevGrowth: 8.64%
+AAPL14     | Healthy      | PASS       | Saved to DB. RevGrowth: -4.13%
+AAPL15     | Healthy      | PASS       | Saved to DB. RevGrowth: 2.51%
+AAPL16     | Healthy      | PASS       | Saved to DB. RevGrowth: 14.51%
+AAPL17     | Healthy      | PASS       | Saved to DB. RevGrowth: 13.58%
+AAPL18     | Healthy      | PASS       | Saved to DB. RevGrowth: 10.99%
+AAPL19     | Healthy      | PASS       | Saved to DB. RevGrowth: 3.51%
+AAPL20     | Healthy      | PASS       | Saved to DB. RevGrowth: 2.57%
+AAPL21     | Healthy      | PASS       | Saved to DB. RevGrowth: 1.06%
+AAPL22     | Healthy      | PASS       | Saved to DB. RevGrowth: 6.54%
+AAPL23     | Healthy      | PASS       | Saved to DB. RevGrowth: -1.97%
+AAPL24     | Healthy      | PASS       | Saved to DB. RevGrowth: -0.71%
+AAPL25     | Healthy      | PASS       | Saved to DB. RevGrowth: -0.49%
+AAPL26     | Healthy      | PASS       | Saved to DB. RevGrowth: -0.65%
+AAPL27     | Healthy      | PASS       | Saved to DB. RevGrowth: -1.47%
+AAPL28     | Healthy      | PASS       | Saved to DB. RevGrowth: 1.94%
+AAPL29     | Healthy      | PASS       | Saved to DB. RevGrowth: 9.37%
+AAPL30     | Healthy      | PASS       | Saved to DB. RevGrowth: 12.59%
+AAPL31     | Healthy      | PASS       | Saved to DB. RevGrowth: 11.83%
+AAPL32     | Healthy      | PASS       | Saved to DB. RevGrowth: -0.13%
+AAPL33     | Healthy      | PASS       | Saved to DB. RevGrowth: 9.09%
+AAPL34     | Healthy      | PASS       | Saved to DB. RevGrowth: 5.75%
+AAPL35     | Healthy      | PASS       | Saved to DB. RevGrowth: 4.02%
+AAPL36     | Healthy      | PASS       | Saved to DB. RevGrowth: 3.95%
+AAPL37     | Healthy      | PASS       | Saved to DB. RevGrowth: 6.45%
+AAPL38     | Healthy      | PASS       | Saved to DB. RevGrowth: 0.23%
+AAPL39     | Healthy      | PASS       | Saved to DB. RevGrowth: 4.12%
+AAPL40     | Healthy      | PASS       | Saved to DB. RevGrowth: 9.14%
+AAPL41     | Healthy      | PASS       | Saved to DB. RevGrowth: 8.41%
+AAPL42     | Healthy      | PASS       | Saved to DB. RevGrowth: -1.48%
+AAPL43     | Healthy      | PASS       | Saved to DB. RevGrowth: 6.60%
+AAPL44     | Healthy      | PASS       | Saved to DB. RevGrowth: 2.05%
+AAPL45     | Healthy      | PASS       | Saved to DB. RevGrowth: 6.24%
+AAPL46     | Healthy      | PASS       | Saved to DB. RevGrowth: -1.09%
+AAPL47     | Healthy      | PASS       | Saved to DB. RevGrowth: 7.02%
+AAPL48     | Healthy      | PASS       | Saved to DB. RevGrowth: -0.09%
+AAPL49     | Healthy      | PASS       | Saved to DB. RevGrowth: -1.63%
+AAPL50     | Healthy      | PASS       | Saved to DB. RevGrowth: 11.33%
+MISS01     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS02     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS03     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS04     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS05     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS06     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS07     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS08     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS09     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+MISS10     | MissingData  | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO01     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO02     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO03     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO04     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO05     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO06     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO07     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO08     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO09     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+ZERO10     | ZeroValues   | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL01     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL02     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL03     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL04     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL05     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL06     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL07     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL08     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL09     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+NULL10     | BrokenPointer | PASS       | Saved to DB. RevGrowth: 0.00%
+DBFAIL     | Healthy      | FAIL       | DB Save Error: database connection refused
+--------------------------------------------------------------------------------------
+Summary:
+Total Processed: 81
+Success: 80
+Failures: 1
+--------------------------------------------------------------------------------------
