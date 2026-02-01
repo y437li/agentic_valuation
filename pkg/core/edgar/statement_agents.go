@@ -180,6 +180,26 @@ func populateStruct(v interface{}, year string) {
 				// Set Value field
 				floatVal := mapVal.Float()
 				valueField.Set(reflect.ValueOf(&floatVal))
+			} else {
+				// FALLBACK: Target year not found, use latest available year
+				// This handles cases where year columns were detected incorrectly
+				keys := yearsField.MapKeys()
+				if len(keys) > 0 {
+					// Find max year
+					maxYear := ""
+					for _, k := range keys {
+						if k.String() > maxYear {
+							maxYear = k.String()
+						}
+					}
+					if maxYear != "" {
+						mapVal = yearsField.MapIndex(reflect.ValueOf(maxYear))
+						if mapVal.IsValid() {
+							floatVal := mapVal.Float()
+							valueField.Set(reflect.ValueOf(&floatVal))
+						}
+					}
+				}
 			}
 		}
 		return // Stop recursing if we found a leaf node

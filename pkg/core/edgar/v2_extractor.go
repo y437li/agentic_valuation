@@ -35,28 +35,36 @@ type statementConfig struct {
 
 // Extract performs full v2.0 extraction on markdown content
 func (e *V2Extractor) Extract(ctx context.Context, markdown string, meta *FilingMetadata) (*FSAPDataResponse, error) {
-	// Step 1: Parse TOC using NavigatorAgent
-	toc, err := e.navigator.ParseTOC(ctx, markdown)
+	// Step 1: Extract TOC section from markdown (first ~500 lines to avoid LLM token limits)
+	tocSection := extractTOCSection(markdown)
+	fmt.Printf("  [DEBUG] TOC section: %d chars, %d lines\n", len(tocSection), strings.Count(tocSection, "\n")+1)
+
+	// Step 2: Parse TOC using NavigatorAgent
+	toc, err := e.navigator.ParseTOC(ctx, tocSection)
 	if err != nil {
 		fmt.Printf("Warning: NavigatorAgent.ParseTOC failed: %v (continuing with fallback patterns)\n", err)
+	} else if toc != nil {
+		fmt.Printf("  [DEBUG] Navigator found: IS=%v, BS=%v, CF=%v\n",
+			toc.IncomeStatement != nil, toc.BalanceSheet != nil, toc.CashFlow != nil)
 	}
 
 	// Statement configurations with fallback patterns
+	// NOTE: [TABLE: XXX] markers come from iXBRL conversion and should be searched first
 	statements := []statementConfig{
 		{
 			name:      "Income_Statement",
 			tableType: "income_statement",
-			patterns:  []string{"CONSOLIDATED STATEMENTS OF INCOME", "CONSOLIDATED STATEMENTS OF OPERATIONS", "STATEMENTS OF INCOME"},
+			patterns:  []string{"[TABLE: INCOME_STATEMENT]", "CONSOLIDATED STATEMENTS OF INCOME", "CONSOLIDATED STATEMENTS OF OPERATIONS", "STATEMENTS OF INCOME", "STATEMENTS OF OPERATIONS"},
 		},
 		{
 			name:      "Balance_Sheet",
 			tableType: "balance_sheet",
-			patterns:  []string{"CONSOLIDATED BALANCE SHEETS", "CONSOLIDATED BALANCE SHEET"},
+			patterns:  []string{"[TABLE: BALANCE_SHEET]", "CONSOLIDATED BALANCE SHEETS", "CONSOLIDATED BALANCE SHEET", "BALANCE SHEETS"},
 		},
 		{
 			name:      "Cash_Flow",
 			tableType: "cash_flow",
-			patterns:  []string{"CONSOLIDATED STATEMENTS OF CASH FLOWS", "STATEMENTS OF CASH FLOWS"},
+			patterns:  []string{"[TABLE: CASH_FLOW_STATEMENT]", "CONSOLIDATED STATEMENTS OF CASH FLOWS", "STATEMENTS OF CASH FLOWS", "CASH FLOW STATEMENTS"},
 		},
 	}
 
@@ -94,6 +102,10 @@ func (e *V2Extractor) Extract(ctx context.Context, markdown string, meta *Filing
 	}
 
 	// Populate Value fields from Years map for backwards compatibility
+	fmt.Printf("  [DEBUG] Populating Value from Years for FiscalYear: %d\n", result.FiscalYear)
+	if result.IncomeStatement.GrossProfitSection != nil && result.IncomeStatement.GrossProfitSection.Revenues != nil {
+		fmt.Printf("  [DEBUG] Revenues Years keys: %v\n", result.IncomeStatement.GrossProfitSection.Revenues.Years)
+	}
 	populateValuesFromYears(result)
 
 	return result, nil
@@ -109,15 +121,38 @@ func (e *V2Extractor) extractStatement(ctx context.Context, markdown string, stm
 
 	// Slice table content (60 lines should cover most tables)
 	tableMarkdown := sliceLinesV2(markdown, startLine, startLine+60)
+	preview := tableMarkdown
+	if len(preview) > 200 {
+		preview = preview[:200]
+	}
+	fmt.Printf("  [DEBUG] %s found at line %d, content preview: %q\n", stmt.name, startLine, preview)
 
 	// Step 2a: TableMapperAgent - LLM identifies row semantics
 	mapping, err := e.mapper.MapTable(ctx, stmt.tableType, tableMarkdown)
 	if err != nil {
 		return nil, fmt.Errorf("MapTable failed: %w", err)
 	}
+	rowCount := 0
+	if mapping != nil {
+		rowCount = len(mapping.RowMappings)
+		// Show first 3 fsap_variables for debugging
+		vars := []string{}
+		for i, rm := range mapping.RowMappings {
+			if i >= 3 {
+				break
+			}
+			vars = append(vars, rm.FSAPVariable)
+		}
+		fmt.Printf("  [DEBUG] Mapper returned %d mappings for %s: %v\n", rowCount, stmt.name, vars)
+	}
 
 	// Step 2b: GoExtractor - Parse table and extract values
 	parsedTable := e.extractor.ParseMarkdownTableWithOffset(tableMarkdown, stmt.tableType, startLine)
+	tableRows := 0
+	if parsedTable != nil {
+		tableRows = len(parsedTable.Rows)
+	}
+	fmt.Printf("  [DEBUG] GoExtractor parsed %d rows from table\n", tableRows)
 	values := e.extractor.ExtractValues(parsedTable, mapping)
 
 	return values, nil
@@ -279,8 +314,49 @@ func mapToCashFlowV2(cf *CashFlowStatement, v *FSAPValue) {
 }
 
 // findTableLineV2 finds the line number where a table starts based on patterns
+// It prefers matches that have actual financial data ($ amounts) in nearby rows
 func findTableLineV2(markdown string, patterns []string) int {
 	lines := strings.Split(markdown, "\n")
+
+	// First pass: look for patterns followed by tables with dollar amounts
+	for i, line := range lines {
+		upperLine := strings.ToUpper(line)
+		for _, pattern := range patterns {
+			if strings.Contains(upperLine, strings.ToUpper(pattern)) {
+				// Check if there's a markdown table with $ amounts within next 20 lines
+				hasTableSep := false
+				hasDollar := false
+				for j := i + 1; j < i+20 && j < len(lines); j++ {
+					if strings.Contains(lines[j], "| ---") || strings.Contains(lines[j], "|---") {
+						hasTableSep = true
+					}
+					if hasTableSep && (strings.Contains(lines[j], "$ |") || strings.Contains(lines[j], "| $")) {
+						hasDollar = true
+						break
+					}
+				}
+				if hasTableSep && hasDollar {
+					return i + 1 // 1-indexed - found real financial table
+				}
+			}
+		}
+	}
+
+	// Second pass: look for patterns with just table separator
+	for i, line := range lines {
+		upperLine := strings.ToUpper(line)
+		for _, pattern := range patterns {
+			if strings.Contains(upperLine, strings.ToUpper(pattern)) {
+				for j := i + 1; j < i+10 && j < len(lines); j++ {
+					if strings.Contains(lines[j], "| ---") || strings.Contains(lines[j], "|---") {
+						return i + 1 // 1-indexed
+					}
+				}
+			}
+		}
+	}
+
+	// Fallback: return first pattern match (original behavior)
 	for i, line := range lines {
 		upperLine := strings.ToUpper(line)
 		for _, pattern := range patterns {
@@ -305,4 +381,36 @@ func sliceLinesV2(markdown string, start, end int) string {
 		return ""
 	}
 	return strings.Join(lines[start-1:end-1], "\n")
+}
+
+// extractTOCSection extracts the Table of Contents section from markdown.
+// This prevents Navigator from receiving the full 260KB+ document.
+// It looks for "TABLE OF CONTENTS" and extracts from there, or returns first 2000 lines.
+func extractTOCSection(markdown string) string {
+	lines := strings.Split(markdown, "\n")
+	const maxLines = 500 // Limit lines to stay within DeepSeek's 131k token limit
+
+	// Find TABLE OF CONTENTS start
+	tocStart := -1
+	for i, line := range lines {
+		if strings.Contains(strings.ToUpper(line), "TABLE OF CONTENTS") ||
+			strings.Contains(strings.ToUpper(line), "INDEX") {
+			tocStart = i
+			break
+		}
+	}
+
+	// If TOC found, start from there; otherwise start from beginning
+	startLine := 0
+	if tocStart > 0 {
+		startLine = tocStart
+	}
+
+	// Extract up to maxLines from the start point
+	endLine := startLine + maxLines
+	if endLine > len(lines) {
+		endLine = len(lines)
+	}
+
+	return strings.Join(lines[startLine:endLine], "\n")
 }

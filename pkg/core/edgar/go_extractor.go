@@ -2,6 +2,7 @@
 package edgar
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -58,12 +59,21 @@ func (e *GoExtractor) ExtractValues(table *ParsedTable, mapping *LineItemMapping
 	for _, yc := range mapping.YearColumns {
 		yearCols[yc.ColumnIndex] = yc.Year
 	}
+	fmt.Printf("  [DEBUG GoExtractor] Year columns: %v (total: %d)\n", yearCols, len(yearCols))
 
+	foundRows := 0
+	debugOnce := true
 	for _, rm := range mapping.RowMappings {
 		// Find row by MarkdownLine (most reliable) or by label fallback
 		row := e.findRowByMapping(table, rm)
 		if row == nil {
 			continue // Skip if row not found
+		}
+		foundRows++
+		// Debug: show first matched row's Values
+		if debugOnce && len(row.Values) > 0 {
+			fmt.Printf("  [DEBUG GoExtractor] First row '%s' Values: %v\n", row.Label, row.Values[:min(3, len(row.Values))])
+			debugOnce = false
 		}
 
 		// Build multi-year values (Years map is the primary data source)
@@ -72,9 +82,12 @@ func (e *GoExtractor) ExtractValues(table *ParsedTable, mapping *LineItemMapping
 
 		for colIdx, valStr := range row.Values {
 			// colIdx is 0-based index of *values* (excluding label).
-			// So colIdx 0 corresponds to Table Column 1.
-			// LLM usually provides 1-based Table Column index.
-			year, ok := yearCols[colIdx+1]
+			// LLM may return either 0-based or 1-based column indices.
+			// Try 0-based first (LLM current behavior), then 1-based (legacy).
+			year, ok := yearCols[colIdx]
+			if !ok {
+				year, ok = yearCols[colIdx+1]
+			}
 			if !ok {
 				continue
 			}
@@ -84,6 +97,41 @@ func (e *GoExtractor) ExtractValues(table *ParsedTable, mapping *LineItemMapping
 				years[strconv.Itoa(year)] = *numVal
 				if year > latestYear {
 					latestYear = year
+				}
+			}
+		}
+
+		// FALLBACK: If LLM year columns didn't work, scan all columns
+		// This handles iXBRL tables with extra empty columns
+		if len(years) == 0 && len(yearCols) > 0 {
+			// Get years sorted descending (most recent first)
+			yearValues := []int{}
+			for _, y := range yearCols {
+				yearValues = append(yearValues, y)
+			}
+			// Sort descending
+			for i := 0; i < len(yearValues)-1; i++ {
+				for j := i + 1; j < len(yearValues); j++ {
+					if yearValues[j] > yearValues[i] {
+						yearValues[i], yearValues[j] = yearValues[j], yearValues[i]
+					}
+				}
+			}
+
+			// Scan all columns for numeric values
+			usedYearIdx := 0
+			for _, valStr := range row.Values {
+				if usedYearIdx >= len(yearValues) {
+					break
+				}
+				numVal := parseNumericValueFromString(valStr)
+				if numVal != nil {
+					year := yearValues[usedYearIdx]
+					years[strconv.Itoa(year)] = *numVal
+					if year > latestYear {
+						latestYear = year
+					}
+					usedYearIdx++
 				}
 			}
 		}
@@ -137,6 +185,7 @@ func (e *GoExtractor) ExtractValues(table *ParsedTable, mapping *LineItemMapping
 		values = append(values, fsapValue)
 	}
 
+	fmt.Printf("  [DEBUG GoExtractor] Found %d/%d rows, extracted %d values\n", foundRows, len(mapping.RowMappings), len(values))
 	return values
 }
 

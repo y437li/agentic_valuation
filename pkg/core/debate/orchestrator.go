@@ -166,6 +166,14 @@ func (o *DebateOrchestrator) Run(ctx context.Context) {
 		}
 	}
 
+	// [USER REQUEST] Stop execution after Phase 0 (Quantitative Analysis)
+	// User instruction: "orchestrator.go 先不用到debt后面的环节" (interpret: stop after debt/quant phase)
+	o.broadcast(SystemMessage("Stopping debate execution after Phase 0 (Quant Baseline) as requested."))
+	o.mu.Lock()
+	o.Status = StatusCompleted
+	o.mu.Unlock()
+	return
+
 	// Initialize Agents
 	var macro, sentiment, fundamental, skeptic, optimist, synthesizer DebateAgent
 

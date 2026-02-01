@@ -233,6 +233,59 @@ func (p *Parser) GetFilingMetadataByYear(cik string, form string, fiscalYear int
 	return nil, fmt.Errorf("no %s filing found for CIK %s", form, cik)
 }
 
+// GetFilingMetadataByAccession fetches filing metadata for a specific accession number.
+// This is useful when you already know the exact filing to retrieve.
+func (p *Parser) GetFilingMetadataByAccession(cik string, accessionNumber string) (*FilingMetadata, error) {
+	// Pad CIK to 10 digits
+	cik = padCIK(cik)
+
+	url := fmt.Sprintf(submissionsAPIURL, cik)
+	body, err := p.fetchURL(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch submissions: %w", err)
+	}
+
+	var resp SubmissionsResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("failed to parse submissions JSON: %w", err)
+	}
+
+	// Normalize the accession number (remove dashes for comparison)
+	normalizedAccession := strings.ReplaceAll(accessionNumber, "-", "")
+
+	// Search for the specific accession number
+	for i, accession := range resp.Filings.Recent.AccessionNumber {
+		// Normalize stored accession for comparison
+		storedNormalized := strings.ReplaceAll(accession, "-", "")
+
+		if storedNormalized == normalizedAccession || accession == accessionNumber {
+			primaryDoc := resp.Filings.Recent.PrimaryDocument[i]
+			filingDate := resp.Filings.Recent.FilingDate[i]
+			form := resp.Filings.Recent.Form[i]
+			fiscalYear := extractFiscalYear(primaryDoc, filingDate)
+			accessionNoDashes := strings.ReplaceAll(accession, "-", "")
+			filingURL := fmt.Sprintf(filingBaseURL, cik, accessionNoDashes, primaryDoc)
+
+			return &FilingMetadata{
+				CIK:             cik,
+				CompanyName:     resp.Name,
+				Tickers:         resp.Tickers,
+				AccessionNumber: accession,
+				FilingDate:      filingDate,
+				Form:            form,
+				IsAmended:       strings.Contains(form, "/A") || strings.HasSuffix(form, "A"),
+				FiscalYear:      fiscalYear,
+				FiscalPeriod:    determineFiscalPeriod(form),
+				PrimaryDocument: primaryDoc,
+				FilingURL:       filingURL,
+				ParsedAt:        time.Now(),
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("filing with accession %s not found for CIK %s", accessionNumber, cik)
+}
+
 // FetchFilingHTML fetches the HTML content of a filing
 func (p *Parser) FetchFilingHTML(filingURL string) (string, error) {
 	body, err := p.fetchURL(filingURL)

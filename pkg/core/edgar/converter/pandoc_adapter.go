@@ -5,9 +5,28 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
+
+// spanAttrRegex matches Pandoc span attributes like [text]{style="..."}
+// We want to keep just the text part
+var spanAttrRegex = regexp.MustCompile(`\[([^\]]+)\]\{[^}]*\}`)
+
+// divBlockRegex matches Pandoc div block markers like ::: {style="..."}
+var divBlockRegex = regexp.MustCompile(`(?m)^:::\s*(?:\{[^}]*\})?\s*$`)
+
+// cleanPandocSpans removes Pandoc span attributes and div blocks from markdown output.
+// Converts [text]{style="..."} -> text
+// Removes ::: {style="..."} div markers entirely
+func cleanPandocSpans(md string) string {
+	// Remove span attributes first
+	result := spanAttrRegex.ReplaceAllString(md, "$1")
+	// Remove div block markers
+	result = divBlockRegex.ReplaceAllString(result, "")
+	return result
+}
 
 // PandocAdapter provides HTML to Markdown conversion using Pandoc CLI.
 // Pandoc is the gold-standard for document conversion and handles complex
@@ -95,7 +114,10 @@ func (p *PandocAdapter) HTMLToMarkdown(html string) (string, error) {
 		return "", fmt.Errorf("pandoc failed: %v, stderr: %s", err, stderr.String())
 	}
 
-	return stdout.String(), nil
+	// Post-process: Remove Pandoc span attributes like [text]{style="..."} -> text
+	result := cleanPandocSpans(stdout.String())
+
+	return result, nil
 }
 
 // HTMLToMarkdownWithGridTables uses Pandoc's multiline_tables for complex layouts.

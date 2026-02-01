@@ -99,11 +99,8 @@ func (z *ZipperEngine) Stitch(ticker, cik string, snapshots []ExtractionSnapshot
 	}
 
 	// Sort by filing date (oldest first for correct overwrite logic)
-	sortedSnapshots := make([]ExtractionSnapshot, len(snapshots))
-	copy(sortedSnapshots, snapshots)
-	sort.Slice(sortedSnapshots, func(i, j int) bool {
-		return sortedSnapshots[i].FilingMetadata.FilingDate < sortedSnapshots[j].FilingMetadata.FilingDate
-	})
+	// Sort by filing date (oldest first for correct overwrite logic)
+	// We delegate this to MergeSnapshots which handles sorting and merging.
 
 	record := &GoldenRecord{
 		Ticker:       ticker,
@@ -113,12 +110,25 @@ func (z *ZipperEngine) Stitch(ticker, cik string, snapshots []ExtractionSnapshot
 		Restatements: []RestatementLog{},
 	}
 
+	z.MergeSnapshots(record, snapshots)
+
+	return record, nil
+}
+
+// MergeSnapshots integrates new snapshots into an existing GoldenRecord.
+// It handles chronological sorting and merging logic.
+func (z *ZipperEngine) MergeSnapshots(record *GoldenRecord, snapshots []ExtractionSnapshot) {
+	// Sort by filing date (oldest first for correct overwrite logic)
+	sortedSnapshots := make([]ExtractionSnapshot, len(snapshots))
+	copy(sortedSnapshots, snapshots)
+	sort.Slice(sortedSnapshots, func(i, j int) bool {
+		return sortedSnapshots[i].FilingMetadata.FilingDate < sortedSnapshots[j].FilingMetadata.FilingDate
+	})
+
 	// Process each snapshot in chronological order
 	for _, snap := range sortedSnapshots {
 		z.mergeSnapshot(record, &snap)
 	}
-
-	return record, nil
 }
 
 // mergeSnapshot integrates a single ExtractionSnapshot into the GoldenRecord.
@@ -345,21 +355,84 @@ func parseYear(s string) int {
 
 // sliceBalanceSheet extracts data for a single year from a multi-year BalanceSheet.
 func sliceBalanceSheet(bs edgar.BalanceSheet, yearStr string) edgar.BalanceSheet {
-	sliced := bs // Shallow copy
+	sliced := bs // Shallow copy of top-level struct (metadata etc)
 
-	// Slice Reported Totals
+	// Helper to slice a list of BS additional items (which are []FSAPValue)
+	sliceBSAdditionalItems := func(items []edgar.FSAPValue) []edgar.FSAPValue {
+		var out []edgar.FSAPValue
+		for _, item := range items {
+			// sliceFSAPValue takes *FSAPValue and returns *FSAPValue
+			// tailored to the specific year.
+			// Since BS.AdditionalItems contains values, we take address and dereference result.
+			ptr := sliceFSAPValue(&item, yearStr)
+			if ptr != nil {
+				out = append(out, *ptr)
+			}
+		}
+		return out
+	}
+
+	// 1. Reported Context
 	sliced.ReportedForValidation.TotalAssets = sliceFSAPValue(bs.ReportedForValidation.TotalAssets, yearStr)
 	sliced.ReportedForValidation.TotalLiabilities = sliceFSAPValue(bs.ReportedForValidation.TotalLiabilities, yearStr)
 	sliced.ReportedForValidation.TotalEquity = sliceFSAPValue(bs.ReportedForValidation.TotalEquity, yearStr)
 	sliced.ReportedForValidation.TotalCurrentAssets = sliceFSAPValue(bs.ReportedForValidation.TotalCurrentAssets, yearStr)
 	sliced.ReportedForValidation.TotalCurrentLiabilities = sliceFSAPValue(bs.ReportedForValidation.TotalCurrentLiabilities, yearStr)
 
-	// Slice Current Assets
+	// 2. Current Assets
 	sliced.CurrentAssets.CashAndEquivalents = sliceFSAPValue(bs.CurrentAssets.CashAndEquivalents, yearStr)
+	sliced.CurrentAssets.ShortTermInvestments = sliceFSAPValue(bs.CurrentAssets.ShortTermInvestments, yearStr)
 	sliced.CurrentAssets.AccountsReceivableNet = sliceFSAPValue(bs.CurrentAssets.AccountsReceivableNet, yearStr)
 	sliced.CurrentAssets.Inventories = sliceFSAPValue(bs.CurrentAssets.Inventories, yearStr)
+	sliced.CurrentAssets.FinanceDivLoansST = sliceFSAPValue(bs.CurrentAssets.FinanceDivLoansST, yearStr)
+	sliced.CurrentAssets.FinanceDivOtherCurrAsset = sliceFSAPValue(bs.CurrentAssets.FinanceDivOtherCurrAsset, yearStr)
+	sliced.CurrentAssets.OtherAssets = sliceFSAPValue(bs.CurrentAssets.OtherAssets, yearStr)
+	sliced.CurrentAssets.OtherCurrentAssets = sliceFSAPValue(bs.CurrentAssets.OtherCurrentAssets, yearStr)
+	sliced.CurrentAssets.AdditionalItems = sliceBSAdditionalItems(bs.CurrentAssets.AdditionalItems)
 
-	// TODO: Add all other fields for full fidelity
+	// 3. Noncurrent Assets
+	sliced.NoncurrentAssets.PPEAtCost = sliceFSAPValue(bs.NoncurrentAssets.PPEAtCost, yearStr)
+	sliced.NoncurrentAssets.AccumulatedDepreciation = sliceFSAPValue(bs.NoncurrentAssets.AccumulatedDepreciation, yearStr)
+	sliced.NoncurrentAssets.PPENet = sliceFSAPValue(bs.NoncurrentAssets.PPENet, yearStr)
+	sliced.NoncurrentAssets.LongTermInvestments = sliceFSAPValue(bs.NoncurrentAssets.LongTermInvestments, yearStr)
+	sliced.NoncurrentAssets.DeferredChargesLT = sliceFSAPValue(bs.NoncurrentAssets.DeferredChargesLT, yearStr)
+	sliced.NoncurrentAssets.Intangibles = sliceFSAPValue(bs.NoncurrentAssets.Intangibles, yearStr)
+	sliced.NoncurrentAssets.Goodwill = sliceFSAPValue(bs.NoncurrentAssets.Goodwill, yearStr)
+	sliced.NoncurrentAssets.FinanceDivLoansLT = sliceFSAPValue(bs.NoncurrentAssets.FinanceDivLoansLT, yearStr)
+	sliced.NoncurrentAssets.FinanceDivOtherLTAssets = sliceFSAPValue(bs.NoncurrentAssets.FinanceDivOtherLTAssets, yearStr)
+	sliced.NoncurrentAssets.DeferredTaxAssetsLT = sliceFSAPValue(bs.NoncurrentAssets.DeferredTaxAssetsLT, yearStr)
+	sliced.NoncurrentAssets.RestrictedCash = sliceFSAPValue(bs.NoncurrentAssets.RestrictedCash, yearStr)
+	sliced.NoncurrentAssets.OtherNoncurrentAssets = sliceFSAPValue(bs.NoncurrentAssets.OtherNoncurrentAssets, yearStr)
+	sliced.NoncurrentAssets.AdditionalItems = sliceBSAdditionalItems(bs.NoncurrentAssets.AdditionalItems)
+
+	// 4. Current Liabilities
+	sliced.CurrentLiabilities.AccountsPayable = sliceFSAPValue(bs.CurrentLiabilities.AccountsPayable, yearStr)
+	sliced.CurrentLiabilities.AccruedLiabilities = sliceFSAPValue(bs.CurrentLiabilities.AccruedLiabilities, yearStr)
+	sliced.CurrentLiabilities.NotesPayableShortTermDebt = sliceFSAPValue(bs.CurrentLiabilities.NotesPayableShortTermDebt, yearStr)
+	sliced.CurrentLiabilities.CurrentMaturitiesLTD = sliceFSAPValue(bs.CurrentLiabilities.CurrentMaturitiesLTD, yearStr)
+	sliced.CurrentLiabilities.CurrentOperatingLeaseLiab = sliceFSAPValue(bs.CurrentLiabilities.CurrentOperatingLeaseLiab, yearStr)
+	sliced.CurrentLiabilities.DeferredRevenueCurrent = sliceFSAPValue(bs.CurrentLiabilities.DeferredRevenueCurrent, yearStr)
+	sliced.CurrentLiabilities.FinanceDivCurr = sliceFSAPValue(bs.CurrentLiabilities.FinanceDivCurr, yearStr)
+	sliced.CurrentLiabilities.OtherCurrentLiabilities = sliceFSAPValue(bs.CurrentLiabilities.OtherCurrentLiabilities, yearStr)
+	sliced.CurrentLiabilities.AdditionalItems = sliceBSAdditionalItems(bs.CurrentLiabilities.AdditionalItems)
+
+	// 5. Noncurrent Liabilities
+	sliced.NoncurrentLiabilities.LongTermDebt = sliceFSAPValue(bs.NoncurrentLiabilities.LongTermDebt, yearStr)
+	sliced.NoncurrentLiabilities.LongTermOperatingLeaseLiab = sliceFSAPValue(bs.NoncurrentLiabilities.LongTermOperatingLeaseLiab, yearStr)
+	sliced.NoncurrentLiabilities.DeferredTaxLiabilities = sliceFSAPValue(bs.NoncurrentLiabilities.DeferredTaxLiabilities, yearStr)
+	sliced.NoncurrentLiabilities.PensionObligations = sliceFSAPValue(bs.NoncurrentLiabilities.PensionObligations, yearStr)
+	sliced.NoncurrentLiabilities.FinanceDivNoncurr = sliceFSAPValue(bs.NoncurrentLiabilities.FinanceDivNoncurr, yearStr)
+	sliced.NoncurrentLiabilities.OtherNoncurrentLiabilities = sliceFSAPValue(bs.NoncurrentLiabilities.OtherNoncurrentLiabilities, yearStr)
+	sliced.NoncurrentLiabilities.AdditionalItems = sliceBSAdditionalItems(bs.NoncurrentLiabilities.AdditionalItems)
+
+	// 6. Equity
+	sliced.Equity.PreferredStock = sliceFSAPValue(bs.Equity.PreferredStock, yearStr)
+	sliced.Equity.CommonStockAPIC = sliceFSAPValue(bs.Equity.CommonStockAPIC, yearStr)
+	sliced.Equity.RetainedEarningsDeficit = sliceFSAPValue(bs.Equity.RetainedEarningsDeficit, yearStr)
+	sliced.Equity.TreasuryStock = sliceFSAPValue(bs.Equity.TreasuryStock, yearStr)
+	sliced.Equity.AccumOtherComprehensiveIncome = sliceFSAPValue(bs.Equity.AccumOtherComprehensiveIncome, yearStr)
+	sliced.Equity.NoncontrollingInterests = sliceFSAPValue(bs.Equity.NoncontrollingInterests, yearStr)
+	sliced.Equity.AdditionalItems = sliceBSAdditionalItems(bs.Equity.AdditionalItems)
 
 	return sliced
 }
@@ -368,23 +441,95 @@ func sliceBalanceSheet(bs edgar.BalanceSheet, yearStr string) edgar.BalanceSheet
 func sliceIncomeStatement(is edgar.IncomeStatement, yearStr string) edgar.IncomeStatement {
 	sliced := is // Shallow copy
 
-	// Slice Gross Profit Section
+	// Helper
+	sliceAdditionalItems := func(items []edgar.AdditionalItem) []edgar.AdditionalItem {
+		var out []edgar.AdditionalItem
+		for _, item := range items {
+			newItem := item
+			newItem.Value = sliceFSAPValue(item.Value, yearStr)
+			if newItem.Value != nil && newItem.Value.Value != nil {
+				out = append(out, newItem)
+			}
+		}
+		return out
+	}
+
+	// 1. Gross Profit
 	if is.GrossProfitSection != nil {
 		sliced.GrossProfitSection = &edgar.GrossProfitSection{
 			Revenues:        sliceFSAPValue(is.GrossProfitSection.Revenues, yearStr),
 			CostOfGoodsSold: sliceFSAPValue(is.GrossProfitSection.CostOfGoodsSold, yearStr),
 			GrossProfit:     sliceFSAPValue(is.GrossProfitSection.GrossProfit, yearStr),
+			AdditionalItems: sliceAdditionalItems(is.GrossProfitSection.AdditionalItems),
 		}
 	}
 
-	// Slice Net Income Section
+	// 2. Operating Costs
+	if is.OperatingCostSection != nil {
+		sliced.OperatingCostSection = &edgar.OperatingCostSection{
+			SGAExpenses:            sliceFSAPValue(is.OperatingCostSection.SGAExpenses, yearStr),
+			RDExpenses:             sliceFSAPValue(is.OperatingCostSection.RDExpenses, yearStr),
+			AdvertisingExpenses:    sliceFSAPValue(is.OperatingCostSection.AdvertisingExpenses, yearStr),
+			OtherOperatingExpenses: sliceFSAPValue(is.OperatingCostSection.OtherOperatingExpenses, yearStr),
+			OperatingIncome:        sliceFSAPValue(is.OperatingCostSection.OperatingIncome, yearStr),
+			AdditionalItems:        sliceAdditionalItems(is.OperatingCostSection.AdditionalItems),
+		}
+	}
+
+	// 3. Non-Operating
+	if is.NonOperatingSection != nil {
+		sliced.NonOperatingSection = &edgar.NonOperatingSection{
+			InterestExpense:              sliceFSAPValue(is.NonOperatingSection.InterestExpense, yearStr),
+			OtherIncomeExpense:           sliceFSAPValue(is.NonOperatingSection.OtherIncomeExpense, yearStr),
+			EquityAffiliatesNonOperating: sliceFSAPValue(is.NonOperatingSection.EquityAffiliatesNonOperating, yearStr),
+			IncomeBeforeTax:              sliceFSAPValue(is.NonOperatingSection.IncomeBeforeTax, yearStr),
+			AdditionalItems:              sliceAdditionalItems(is.NonOperatingSection.AdditionalItems),
+		}
+	}
+
+	// 4. Tax & Adjustments
+	if is.TaxAdjustments != nil {
+		sliced.TaxAdjustments = &edgar.TaxAdjustmentsSection{
+			IncomeTaxExpense:       sliceFSAPValue(is.TaxAdjustments.IncomeTaxExpense, yearStr),
+			DiscontinuedOperations: sliceFSAPValue(is.TaxAdjustments.DiscontinuedOperations, yearStr),
+			ExtraordinaryItems:     sliceFSAPValue(is.TaxAdjustments.ExtraordinaryItems, yearStr),
+			AdditionalItems:        sliceAdditionalItems(is.TaxAdjustments.AdditionalItems),
+		}
+	}
+
+	// 5. Net Income
 	if is.NetIncomeSection != nil {
 		sliced.NetIncomeSection = &edgar.NetIncomeSection{
 			NetIncomeToCommon: sliceFSAPValue(is.NetIncomeSection.NetIncomeToCommon, yearStr),
+			NetIncomeToNCI:    sliceFSAPValue(is.NetIncomeSection.NetIncomeToNCI, yearStr),
+			AdditionalItems:   sliceAdditionalItems(is.NetIncomeSection.AdditionalItems),
 		}
 	}
 
-	// TODO: Add all other fields for full fidelity
+	// 6. OCI
+	if is.OCISection != nil {
+		sliced.OCISection = &edgar.OCISection{
+			OCIForeignCurrency:       sliceFSAPValue(is.OCISection.OCIForeignCurrency, yearStr),
+			OCISecurities:            sliceFSAPValue(is.OCISection.OCISecurities, yearStr),
+			OCIPension:               sliceFSAPValue(is.OCISection.OCIPension, yearStr),
+			OCIHedges:                sliceFSAPValue(is.OCISection.OCIHedges, yearStr),
+			OtherComprehensiveIncome: sliceFSAPValue(is.OCISection.OtherComprehensiveIncome, yearStr),
+			AdditionalItems:          sliceAdditionalItems(is.OCISection.AdditionalItems),
+		}
+	}
+
+	// 7. NonRecurring
+	if is.NonRecurringSection != nil {
+		sliced.NonRecurringSection = &edgar.NonRecurringSection{
+			ImpairmentCharges:    sliceFSAPValue(is.NonRecurringSection.ImpairmentCharges, yearStr),
+			RestructuringCharges: sliceFSAPValue(is.NonRecurringSection.RestructuringCharges, yearStr),
+			GainLossAssetSales:   sliceFSAPValue(is.NonRecurringSection.GainLossAssetSales, yearStr),
+			SettlementCosts:      sliceFSAPValue(is.NonRecurringSection.SettlementCosts, yearStr),
+			WriteOffs:            sliceFSAPValue(is.NonRecurringSection.WriteOffs, yearStr),
+			OtherNonRecurring:    sliceFSAPValue(is.NonRecurringSection.OtherNonRecurring, yearStr),
+			AdditionalItems:      sliceAdditionalItems(is.NonRecurringSection.AdditionalItems),
+		}
+	}
 
 	return sliced
 }
@@ -393,32 +538,84 @@ func sliceIncomeStatement(is edgar.IncomeStatement, yearStr string) edgar.Income
 func sliceCashFlowStatement(cf edgar.CashFlowStatement, yearStr string) edgar.CashFlowStatement {
 	sliced := cf // Shallow copy
 
-	// Slice Reported Totals
+	// Helper
+	sliceAdditionalItems := func(items []edgar.AdditionalItem) []edgar.AdditionalItem {
+		var out []edgar.AdditionalItem
+		for _, item := range items {
+			newItem := item
+			newItem.Value = sliceFSAPValue(item.Value, yearStr)
+			if newItem.Value != nil && newItem.Value.Value != nil {
+				out = append(out, newItem)
+			}
+		}
+		return out
+	}
+
+	// 1. Reported Totals
 	sliced.ReportedForValidation.NetCashOperating = sliceFSAPValue(cf.ReportedForValidation.NetCashOperating, yearStr)
 	sliced.ReportedForValidation.NetCashInvesting = sliceFSAPValue(cf.ReportedForValidation.NetCashInvesting, yearStr)
 	sliced.ReportedForValidation.NetCashFinancing = sliceFSAPValue(cf.ReportedForValidation.NetCashFinancing, yearStr)
 	sliced.ReportedForValidation.NetChangeInCash = sliceFSAPValue(cf.ReportedForValidation.NetChangeInCash, yearStr)
 
-	// Slice CashSummary (used by e2e output)
+	// 2. Operating Activities
+	if cf.OperatingActivities != nil {
+		sliced.OperatingActivities = &edgar.CFOperatingSection{
+			NetIncomeStart:           sliceFSAPValue(cf.OperatingActivities.NetIncomeStart, yearStr),
+			DepreciationAmortization: sliceFSAPValue(cf.OperatingActivities.DepreciationAmortization, yearStr),
+			AmortizationIntangibles:  sliceFSAPValue(cf.OperatingActivities.AmortizationIntangibles, yearStr),
+			DeferredTaxes:            sliceFSAPValue(cf.OperatingActivities.DeferredTaxes, yearStr),
+			StockBasedCompensation:   sliceFSAPValue(cf.OperatingActivities.StockBasedCompensation, yearStr),
+			ImpairmentCharges:        sliceFSAPValue(cf.OperatingActivities.ImpairmentCharges, yearStr),
+			GainLossAssetSales:       sliceFSAPValue(cf.OperatingActivities.GainLossAssetSales, yearStr),
+			ChangeReceivables:        sliceFSAPValue(cf.OperatingActivities.ChangeReceivables, yearStr),
+			ChangeInventory:          sliceFSAPValue(cf.OperatingActivities.ChangeInventory, yearStr),
+			ChangePayables:           sliceFSAPValue(cf.OperatingActivities.ChangePayables, yearStr),
+			ChangeAccruedExpenses:    sliceFSAPValue(cf.OperatingActivities.ChangeAccruedExpenses, yearStr),
+			ChangeDeferredRevenue:    sliceFSAPValue(cf.OperatingActivities.ChangeDeferredRevenue, yearStr),
+			OtherWorkingCapital:      sliceFSAPValue(cf.OperatingActivities.OtherWorkingCapital, yearStr),
+			OtherNonCashItems:        sliceFSAPValue(cf.OperatingActivities.OtherNonCashItems, yearStr),
+			AdditionalItems:          sliceAdditionalItems(cf.OperatingActivities.AdditionalItems),
+		}
+	}
+
+	// 3. Investing Activities
+	if cf.InvestingActivities != nil {
+		sliced.InvestingActivities = &edgar.CFInvestingSection{
+			Capex:                sliceFSAPValue(cf.InvestingActivities.Capex, yearStr),
+			AcquisitionsNet:      sliceFSAPValue(cf.InvestingActivities.AcquisitionsNet, yearStr),
+			PurchasesSecurities:  sliceFSAPValue(cf.InvestingActivities.PurchasesSecurities, yearStr),
+			MaturitiesSecurities: sliceFSAPValue(cf.InvestingActivities.MaturitiesSecurities, yearStr),
+			SalesSecurities:      sliceFSAPValue(cf.InvestingActivities.SalesSecurities, yearStr),
+			ProceedsAssetSales:   sliceFSAPValue(cf.InvestingActivities.ProceedsAssetSales, yearStr),
+			OtherInvesting:       sliceFSAPValue(cf.InvestingActivities.OtherInvesting, yearStr),
+			AdditionalItems:      sliceAdditionalItems(cf.InvestingActivities.AdditionalItems),
+		}
+	}
+
+	// 4. Financing Activities
+	if cf.FinancingActivities != nil {
+		sliced.FinancingActivities = &edgar.CFFinancingSection{
+			DebtProceeds:           sliceFSAPValue(cf.FinancingActivities.DebtProceeds, yearStr),
+			DebtRepayments:         sliceFSAPValue(cf.FinancingActivities.DebtRepayments, yearStr),
+			StockIssuanceProceeds:  sliceFSAPValue(cf.FinancingActivities.StockIssuanceProceeds, yearStr),
+			ShareRepurchases:       sliceFSAPValue(cf.FinancingActivities.ShareRepurchases, yearStr),
+			DividendsPaid:          sliceFSAPValue(cf.FinancingActivities.DividendsPaid, yearStr),
+			TaxWithholdingPayments: sliceFSAPValue(cf.FinancingActivities.TaxWithholdingPayments, yearStr),
+			OtherFinancing:         sliceFSAPValue(cf.FinancingActivities.OtherFinancing, yearStr),
+			AdditionalItems:        sliceAdditionalItems(cf.FinancingActivities.AdditionalItems),
+		}
+	}
+
+	// 5. Cash Summary
 	if cf.CashSummary != nil {
 		sliced.CashSummary = &edgar.CashSummarySection{
 			NetCashOperating: sliceFSAPValue(cf.CashSummary.NetCashOperating, yearStr),
 			NetCashInvesting: sliceFSAPValue(cf.CashSummary.NetCashInvesting, yearStr),
 			NetCashFinancing: sliceFSAPValue(cf.CashSummary.NetCashFinancing, yearStr),
-		}
-	}
-
-	// Slice InvestingActivities (for CapEx)
-	if cf.InvestingActivities != nil {
-		sliced.InvestingActivities = &edgar.CFInvestingSection{
-			Capex: sliceFSAPValue(cf.InvestingActivities.Capex, yearStr),
-		}
-	}
-
-	// Slice OperatingActivities (for NetIncomeStart)
-	if cf.OperatingActivities != nil {
-		sliced.OperatingActivities = &edgar.CFOperatingSection{
-			NetIncomeStart: sliceFSAPValue(cf.OperatingActivities.NetIncomeStart, yearStr),
+			FXEffect:         sliceFSAPValue(cf.CashSummary.FXEffect, yearStr),
+			NetChangeInCash:  sliceFSAPValue(cf.CashSummary.NetChangeInCash, yearStr),
+			CashBeginning:    sliceFSAPValue(cf.CashSummary.CashBeginning, yearStr),
+			CashEnding:       sliceFSAPValue(cf.CashSummary.CashEnding, yearStr),
 		}
 	}
 
@@ -445,9 +642,15 @@ func sliceFSAPValue(v *edgar.FSAPValue, yearStr string) *edgar.FSAPValue {
 		sliced.Years[yearStr] = val
 	} else if v.Value != nil {
 		// Fallback: use the top-level Value if Years map doesn't have the year
-		// This handles backward compatibility
-		sliced.Value = v.Value
-		sliced.Years[yearStr] = *v.Value
+		// AND we are extracting the primary year (or if strict year checking is disabled)
+		// For safety in synthesis, we assume if Years map is empty but Value exists, it MIGHT trigger
+		// But in multi-year zipper context, relying on Year map is safer.
+		// However, the original code allowed fallback. We'll keep it but be wary.
+		// If v.Years is populated but doesn't have the year, we should return nil/0, not the Value.
+		if len(v.Years) == 0 {
+			sliced.Value = v.Value
+			sliced.Years[yearStr] = *v.Value
+		}
 	}
 
 	return sliced

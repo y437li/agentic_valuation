@@ -249,15 +249,17 @@ func (e *AnalysisEngine) extractAllValues(d *edgar.FSAPDataResponse) []float64 {
 		}
 	}
 
-	// Cash Flow
-	if d.CashFlowStatement.CashSummary.NetCashOperating != nil {
-		appendVal(d.CashFlowStatement.CashSummary.NetCashOperating)
-	}
-	if d.CashFlowStatement.CashSummary.NetCashInvesting != nil {
-		appendVal(d.CashFlowStatement.CashSummary.NetCashInvesting)
-	}
-	if d.CashFlowStatement.CashSummary.NetCashFinancing != nil {
-		appendVal(d.CashFlowStatement.CashSummary.NetCashFinancing)
+	// Cash Flow - add nil safety for CashSummary
+	if d.CashFlowStatement.CashSummary != nil {
+		if d.CashFlowStatement.CashSummary.NetCashOperating != nil {
+			appendVal(d.CashFlowStatement.CashSummary.NetCashOperating)
+		}
+		if d.CashFlowStatement.CashSummary.NetCashInvesting != nil {
+			appendVal(d.CashFlowStatement.CashSummary.NetCashInvesting)
+		}
+		if d.CashFlowStatement.CashSummary.NetCashFinancing != nil {
+			appendVal(d.CashFlowStatement.CashSummary.NetCashFinancing)
+		}
 	}
 
 	return values
