@@ -36,7 +36,7 @@ type PipelineOrchestrator struct {
 	v2Extractor      *edgar.V2Extractor
 	zipper           *synthesis.ZipperEngine
 	analyzer         *analysis.AnalysisEngine
-	repo             *store.AnalysisRepo
+	repo             store.AnalysisRepository
 	validationConfig ValidationConfig
 }
 
@@ -56,6 +56,11 @@ func NewPipelineOrchestrator(fetcher ContentFetcher, aiProvider edgar.AIProvider
 			CashFlowTolerance:      0.1,
 		},
 	}
+}
+
+// SetRepository allows injecting a custom repository (e.g., for testing).
+func (p *PipelineOrchestrator) SetRepository(repo store.AnalysisRepository) {
+	p.repo = repo
 }
 
 // SetValidationConfig updates the validation configuration

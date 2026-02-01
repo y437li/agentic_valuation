@@ -62,6 +62,13 @@ type Filing struct {
 	URL             string    `json:"url"` // Constructed download URL
 }
 
+// TickerInfo represents a company ticker entry from the SEC.
+type TickerInfo struct {
+	CIK    string
+	Ticker string
+	Title  string
+}
+
 // =============================================================================
 // SEC EDGAR CLIENT
 // =============================================================================
@@ -218,6 +225,53 @@ func LookupCIKByTicker(ticker string) (string, error) {
 	}
 
 	return "", fmt.Errorf("ticker %s not found in SEC database", ticker)
+}
+
+// FetchAllTickers retrieves all available company tickers from the SEC.
+func FetchAllTickers() ([]TickerInfo, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("GET", "https://www.sec.gov/files/company_tickers.json", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("User-Agent", UserAgent)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch ticker mapping: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("SEC ticker API returned status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read ticker mapping: %w", err)
+	}
+
+	// Response structure: { "0": {"cik_str": 320193, "ticker": "AAPL", "title": "..."}, ... }
+	var mapping map[string]struct {
+		CIK    int    `json:"cik_str"`
+		Ticker string `json:"ticker"`
+		Title  string `json:"title"`
+	}
+
+	if err := json.Unmarshal(body, &mapping); err != nil {
+		return nil, fmt.Errorf("failed to parse ticker mapping: %w", err)
+	}
+
+	var tickers []TickerInfo
+	for _, entry := range mapping {
+		tickers = append(tickers, TickerInfo{
+			CIK:    fmt.Sprintf("%010d", entry.CIK),
+			Ticker: entry.Ticker,
+			Title:  entry.Title,
+		})
+	}
+
+	return tickers, nil
 }
 
 // FetchLatest10K fetches the most recent 10-K filing for a ticker.

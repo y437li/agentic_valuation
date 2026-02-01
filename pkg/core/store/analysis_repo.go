@@ -11,7 +11,14 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// AnalysisRepo handles the storage of GoldenRecords and Analysis results.
+// AnalysisRepository defines the interface for persisting analysis results.
+// This allows for swapping the storage backend (e.g., Mock for testing).
+type AnalysisRepository interface {
+	Save(ctx context.Context, record *synthesis.GoldenRecord, anal *analysis.CompanyAnalysis) error
+	Load(ctx context.Context, ticker string) (*synthesis.GoldenRecord, *analysis.CompanyAnalysis, error)
+}
+
+// AnalysisRepo handles the storage of GoldenRecords and Analysis results using PostgreSQL.
 type AnalysisRepo struct{}
 
 // NewAnalysisRepo creates a new repository instance.
